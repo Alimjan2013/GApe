@@ -672,27 +672,7 @@ export default function App({ canvas_id }: { canvas_id: string }) {
                         ),
                     })
                 }
-                // } else if (template.name === 'Education') {
-                //     console.log('Adding 2 Edu blocks')
-                //     initTemplates.push({
-                //         id: template.id + '-L',
-                //         component: (
-                //             <EduBlock_L
-                //                 onBlockClick={() => {}}
-                //                 block_data={edu_block_data}
-                //             ></EduBlock_L>
-                //         ),
-                //     })
-                //     initTemplates.push({
-                //         id: template.id + '-M',
-                //         component: (
-                //             <EduBlock_M
-                //                 onBlockClick={() => {}}
-                //                 block_data={edu_block_data}
-                //             ></EduBlock_M>
-                //         ),
-                //     })
-                // }
+              
             })
             console.log(initTemplates)
             setTemplates(initTemplates)
@@ -769,23 +749,7 @@ export default function App({ canvas_id }: { canvas_id: string }) {
             return
         }
 
-        // reordering in same list
-        // if (source.droppableId === destination.droppableId) {
-        //     const newQuotes: Quote[] = reorder(
-        //         columns[source.droppableId],
-        //         source.index,
-        //         destination.index
-        //     )
-        //     setColumns({
-        //         ...columns,
-        //         [source.droppableId]: newQuotes,
-        //     })
-        //     return
-        // }
-
-        // moving between columns
-
-        // remove item from source list
+       
         const newColumns = reorderQuoteMap({
             itemMap: columns,
             source,
@@ -974,38 +938,8 @@ export default function App({ canvas_id }: { canvas_id: string }) {
                 </div>
             </div>
 
-            {/* 
 
-            <div className='col-span-1 bg-red-20 flex flex-col'>
-                <div>Choose your block</div>
-
-                <div>Make changes to your profile here.</div>
-
-                <Button onClick={addColumn}>add a column</Button>
-                <Button
-                    onClick={() =>
-                        addItem('column-0', {
-                            id: (Math.random() + 1).toString(36).substring(7),
-                            component: (
-                                <InfoBlock_L
-                                    onBlockClick={() => {}}
-                                    block_data={block_data}
-                                ></InfoBlock_L>
-                            ),
-                        })
-                    }
-                >
-                    add an item
-                </Button>
-                <Button onClick={() => console.log(columns)}>3</Button>
-                <Button onClick={() => addItem('column-0', initial[1])}>
-                    4
-                </Button>
-                <Button onClick={showdata}>5</Button>
-                <Button>6</Button>
-            </div> */}
-
-            {/* <div className='flex-shrink-0 flex-grow bg-gray-200'></div> */}
+           
         </div>
     )
 }
