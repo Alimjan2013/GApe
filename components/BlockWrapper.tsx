@@ -4,6 +4,9 @@ import { CSS } from '@dnd-kit/utilities'
 import { Block, BlockType } from '@/types'
 import InfoBlock from './InfoBlock'
 import ProjectBlock from './ProjectBlock'
+import { ProfileCardProps } from '@/types'
+import { ProjectCardProps } from '@/types'
+import { InfoBlock_L } from './blocks/v2/profile/info-block'
 
 interface BlockWrapperProps {
   block: Block
@@ -28,9 +31,11 @@ const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive }) => {
   const renderBlock = () => {
     switch (block.type) {
       case BlockType.InfoBlock:
-        return <InfoBlock data={block.data} />
+        return <InfoBlock data={block.data as ProfileCardProps} />
       case BlockType.ProjectBlock:
-        return <ProjectBlock data={block.data} />
+        return <ProjectBlock data={block.data as ProjectCardProps} />
+      case BlockType.InfoBlock_L:
+        return <InfoBlock_L blockData={block.data as ProfileCardProps} onClick={() => {}}/>
       // Add more cases for other block types here
       default:
         return <div>Unknown block type</div>
@@ -43,7 +48,7 @@ const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive }) => {
       style={style}
       {...attributes}
       {...listeners}
-      className="mb-4 cursor-move"
+      className="cursor-move"
     >
       {renderBlock()}
     </div>

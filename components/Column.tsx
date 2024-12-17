@@ -16,12 +16,12 @@ export default function Column({ blocks, activeId, id }: ColumnProps) {
   return (
     <div className="flex-1">
       <SortableContext items={blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}>
-        <div ref={setNodeRef} className="flex flex-col gap-4 p-4 bg-gray-100 rounded-lg ">
+        <div ref={setNodeRef} className="flex flex-col gap-2 p-1 bg-gray-100 rounded-lg">
           {blocks.map((block) => (
             <BlockWrapper key={block.id} block={block} isActive={block.id === activeId} />
           ))}
           {blocks.length === 0 && (
-            <div ref={setNodeRef}  className="h-full min-h-[400px] flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded-lg">
+            <div ref={setNodeRef}  className="h-full min-h-[200px] flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded-lg">
               Drop items here
             </div>
           )}

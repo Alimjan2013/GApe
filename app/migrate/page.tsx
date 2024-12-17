@@ -44,6 +44,22 @@ const initialBlocks: Block[] = [
         } as ProfileCardProps,
     },
     {
+        id: '12',
+        type: BlockType.ProjectBlock,
+        data: {
+            project: '2NextGen Web App',
+            company: 'Tech Innovators Inc.',
+            role: 'Lead Developer',
+            dateRange: 'Jan 2020 - Present',
+            Heyperlink: 'https://techinnovators.com/projects/nextgen-web-app',
+            location: 'Remote',
+            description:
+                'Led the development of a cutting-edge web application using modern technologies such as React, Node.js, and GraphQL. Improved performance and scalability, resulting in a 30% increase in user engagement.',
+            image: 'https://example.com/images/nextgen-web-app.jpg',
+            type: 'Full-time',
+        } as ProjectCardProps,
+    },
+     {
         id: '2',
         type: BlockType.ProjectBlock,
         data: {
@@ -62,6 +78,26 @@ const initialBlocks: Block[] = [
     {
         id: '3',
         type: BlockType.InfoBlock,
+        data: {
+            name: '3Alimjan Ablimit',
+            title: 'UX Designer',
+            description:
+                'Creative UX designer with a keen eye for detail and a user-centered approach to design. Passionate about creating intuitive and engaging digital experiences.',
+            phone: '+1 (555) 987-6543',
+            email: 'jane.smith@example.com',
+            location: 'New York, NY',
+            imageUrl: 'https://example.com/images/jane-smith.jpg',
+            tags: ['UX Design', 'Figma', 'User Research'],
+            github: 'janesmith',
+            linkedin: 'janesmith',
+            image: 'https://example.com/images/jane-smith.jpg',
+            x: 'janesmith',
+            url: 'https://janesmith.com',
+        } as ProfileCardProps,
+    },
+    {
+        id: '7',
+        type: BlockType.InfoBlock_L,
         data: {
             name: '3Alimjan Ablimit',
             title: 'UX Designer',
@@ -188,8 +224,8 @@ export default function Home() {
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
         >
-            <main className='flex min-h-screen flex-col items-center p-8'>
-                <div className='flex w-full max-w-7xl gap-8'>
+            <main className='flex  flex-col items-center p-2 bg-customeBG2 w-fit m-auto rounded-lg'>
+                <div className='flex w-full max-w-7xl gap-1'>
                     <Column
                         id="left"
                         blocks={leftColumn}
