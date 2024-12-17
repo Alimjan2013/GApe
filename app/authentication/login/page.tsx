@@ -3,7 +3,7 @@
 // app/login/page.tsx
 'use client' // Since we're handling form inputs on the client-side
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
 import { emailLogin } from '../actions'
 import { Button } from '@/components/ui/button'
@@ -11,21 +11,25 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { createClient } from '@/utils/supabase/client'
 
-export default function LoginPage() {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
+// Create a separate component for the success message check
+function SuccessCheck() {
     const searchParams = useSearchParams()
 
-    const router = useRouter()
     useEffect(() => {
-        console.log(searchParams.get('success'))
         if (searchParams.get('success')) {
-            console.log(searchParams.get('success'))
             setTimeout(() => {
                 toast.success('Successfully verified!')
             })
         }
     }, [searchParams])
+
+    return null
+}
+
+export default function LoginPage() {
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const router = useRouter()
 
     function toRegister() {
         router.push('/authentication/register')
@@ -49,6 +53,9 @@ export default function LoginPage() {
 
     return (
         <div className='h-screen grid grid-cols-2 gap-3 items-center justify-center bg-customeBG1 p-4  '>
+            <Suspense>
+                <SuccessCheck />
+            </Suspense>
             <div className='p-4 w-full flex justify-center'>
                 this is introduce image
             </div>
