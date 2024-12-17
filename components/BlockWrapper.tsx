@@ -2,8 +2,6 @@ import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Block, BlockType } from '@/types'
-import InfoBlock from './InfoBlock'
-import ProjectBlock from './ProjectBlock'
 import { ProfileCardProps,ProjectCardProps,EducationCardProps,ExperienceCardProps,PublicationCardProps } from '@/types'
 import { InfoBlock_L,InfoBlock_M } from './blocks/v2/profile/info-block'
 import { ProjectBlock_L,ProjectBlock_M } from './blocks/v2/profile/ProjectCard'
@@ -32,10 +30,6 @@ const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive }) => {
 
   const renderBlock = () => {
     switch (block.type) {
-      case BlockType.InfoBlock:
-        return <InfoBlock data={block.data as ProfileCardProps} />
-      case BlockType.ProjectBlock:
-        return <ProjectBlock data={block.data as ProjectCardProps} />
       case BlockType.InfoBlock_L:
         return <InfoBlock_L blockData={block.data as ProfileCardProps} onClick={() => {}}/>
       case BlockType.InfoBlock_M:
