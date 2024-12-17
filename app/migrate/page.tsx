@@ -119,43 +119,58 @@ export default function Home() {
 
         if (!over) return
 
-        if (active.id !== over.id) {
-            // Find which column the dragged item is from
-            const activeItem = [...leftColumn, ...rightColumn].find(
-                item => item.id === active.id
-            )
-            if (!activeItem) return
+        // Find which column the dragged item is from
+        const activeItem = [...leftColumn, ...rightColumn].find(
+            item => item.id === active.id
+        )
+        if (!activeItem) return
 
-            // Determine source and target columns
+        // Check if dropping into an empty column
+        if (over.id === 'left' || over.id === 'right') {
             const isFromLeft = leftColumn.find(item => item.id === active.id)
-            const isToLeft = leftColumn.find(item => item.id === over.id)
-            
             const sourceColumn = isFromLeft ? leftColumn : rightColumn
-            const targetColumn = isToLeft ? leftColumn : rightColumn
             const setSourceColumn = isFromLeft ? setLeftColumn : setRightColumn
-            const setTargetColumn = isToLeft ? setLeftColumn : setRightColumn
+            const setTargetColumn = over.id === 'left' ? setLeftColumn : setRightColumn
 
-            // If moving within the same column
-            if (sourceColumn === targetColumn) {
-                const items = [...sourceColumn]
-                const oldIndex = items.findIndex(item => item.id === active.id)
-                const newIndex = items.findIndex(item => item.id === over.id)
-                const [movedItem] = items.splice(oldIndex, 1)
-                items.splice(newIndex, 0, movedItem)
-                setSourceColumn(items)
-            } 
-            // If moving between columns
-            else {
-                const sourceItems = [...sourceColumn]
-                const targetItems = [...targetColumn]
-                const oldIndex = sourceItems.findIndex(item => item.id === active.id)
-                const newIndex = targetItems.findIndex(item => item.id === over.id)
-                const [movedItem] = sourceItems.splice(oldIndex, 1)
-                targetItems.splice(newIndex, 0, movedItem)
-                
-                setSourceColumn(sourceItems)
-                setTargetColumn(targetItems)
-            }
+            // Remove from source
+            const sourceItems = [...sourceColumn]
+            const oldIndex = sourceItems.findIndex(item => item.id === active.id)
+            const [movedItem] = sourceItems.splice(oldIndex, 1)
+            
+            // Add to target
+            setSourceColumn(sourceItems)
+            setTargetColumn(prev => [...prev, movedItem])
+            
+            setActiveId(null)
+            return
+        }
+
+        // Handle normal sorting within or between non-empty columns
+        const isFromLeft = leftColumn.find(item => item.id === active.id)
+        const isToLeft = leftColumn.find(item => item.id === over.id)
+        
+        const sourceColumn = isFromLeft ? leftColumn : rightColumn
+        const targetColumn = isToLeft ? leftColumn : rightColumn
+        const setSourceColumn = isFromLeft ? setLeftColumn : setRightColumn
+        const setTargetColumn = isToLeft ? setLeftColumn : setRightColumn
+
+        if (sourceColumn === targetColumn) {
+            const items = [...sourceColumn]
+            const oldIndex = items.findIndex(item => item.id === active.id)
+            const newIndex = items.findIndex(item => item.id === over.id)
+            const [movedItem] = items.splice(oldIndex, 1)
+            items.splice(newIndex, 0, movedItem)
+            setSourceColumn(items)
+        } else {
+            const sourceItems = [...sourceColumn]
+            const targetItems = [...targetColumn]
+            const oldIndex = sourceItems.findIndex(item => item.id === active.id)
+            const newIndex = targetItems.findIndex(item => item.id === over.id)
+            const [movedItem] = sourceItems.splice(oldIndex, 1)
+            targetItems.splice(newIndex, 0, movedItem)
+            
+            setSourceColumn(sourceItems)
+            setTargetColumn(targetItems)
         }
 
         setActiveId(null)
@@ -173,19 +188,17 @@ export default function Home() {
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
         >
-            <main className='flex min-h-screen flex-col items-center justify-between p-24'>
-                <div className='flex w-full gap-4'>
+            <main className='flex min-h-screen flex-col items-center p-8'>
+                <div className='flex w-full max-w-7xl gap-8'>
                     <Column
-                        blocks={leftColumn.map((block) => ({
-                            ...block,
-                            isActive: block.id === activeId,
-                        }))}
+                        id="left"
+                        blocks={leftColumn}
+                        activeId={activeId}
                     />
                     <Column
-                        blocks={rightColumn.map((block) => ({
-                            ...block,
-                            isActive: block.id === activeId,
-                        }))}
+                        id="right"
+                        blocks={rightColumn}
+                        activeId={activeId}
                     />
                 </div>
             </main>
