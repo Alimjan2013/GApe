@@ -21,7 +21,7 @@ export default function Column({ blocks, activeId, id }: ColumnProps) {
             <BlockWrapper key={block.id} block={block} isActive={block.id === activeId} />
           ))}
           {blocks.length === 0 && (
-            <div ref={setNodeRef}  className="h-full min-h-[200px] flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded-lg">
+            <div ref={setNodeRef}  className="h-full min-h-[200px] min-w-[392px] flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded-lg">
               Drop items here
             </div>
           )}

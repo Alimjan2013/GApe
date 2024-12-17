@@ -2,6 +2,15 @@ export enum BlockType {
   InfoBlock = 'InfoBlock',
   ProjectBlock = 'ProjectBlock',
   InfoBlock_L = 'InfoBlock_L',
+  InfoBlock_M = 'InfoBlock_M',
+  ProjectBlock_L = 'ProjectBlock_L',
+  ProjectBlock_M = 'ProjectBlock_M',
+  EducationBlock_L = 'EducationBlock_L',
+  EducationBlock_M = 'EducationBlock_M',
+  PublicationBlock_L = 'PublicationBlock_L',
+  PublicationBlock_M = 'PublicationBlock_M',
+  ExperienceBlock_L = 'ExperienceBlock_L',
+  ExperienceBlock_M = 'ExperienceBlock_M',
   // Add more block types here as needed
 }
 
