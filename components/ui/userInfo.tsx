@@ -14,7 +14,7 @@ import Link from 'next/link'
 
 
 export default async function UserInfo() {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data, error } = await supabase.auth.getUser()
     const userId = data.user?.id
