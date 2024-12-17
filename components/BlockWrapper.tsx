@@ -7,9 +7,10 @@ import ProjectBlock from './ProjectBlock'
 
 interface BlockWrapperProps {
   block: Block
+  isActive: boolean // Add this line
 }
 
-const BlockWrapper: React.FC<BlockWrapperProps> = ({ block }) => {
+const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive }) => {
   const {
     attributes,
     listeners,
@@ -21,6 +22,7 @@ const BlockWrapper: React.FC<BlockWrapperProps> = ({ block }) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isActive ? 0.5 : 1, // Add this line
   }
 
   const renderBlock = () => {
