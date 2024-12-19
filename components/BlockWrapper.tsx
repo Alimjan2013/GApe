@@ -10,22 +10,30 @@ import { PublicationBlock_L,PublicationBlock_M } from './blocks/v2/profile/Publi
 import { WorkBlock_L,WorkBlock_M } from './blocks/v2/profile/ExperienceCard'
 interface BlockWrapperProps {
   block: Block
-  isActive: boolean // Add this line
+  isActive: boolean
+  columnId: string
 }
 
-const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive }) => {
+const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive, columnId }) => {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id: block.id })
+  } = useSortable({ 
+    id: block.id,
+    data: {
+      type: 'block',
+      block,
+      columnId
+    }
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isActive ? 0.5 : 1, // Add this line
+    opacity: isActive ? 0.5 : 1,
   }
 
   const renderBlock = () => {
