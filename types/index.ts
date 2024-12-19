@@ -89,6 +89,7 @@ export interface InfoBlockProps {
 export interface Block {
   id: string
   type: BlockType
-  data: ProfileCardProps | ProjectCardProps | InfoBlockProps | EducationCardProps | ExperienceCardProps | PublicationCardProps | SkillsCardProps
+  data?: any
+  size?: string
 }
 

@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -8,12 +9,19 @@ import { ProjectBlock_L,ProjectBlock_M } from './blocks/v2/profile/ProjectCard'
 import { EduBlock_L,EduBlock_M } from './blocks/v2/profile/EducationCard'
 import { PublicationBlock_L,PublicationBlock_M } from './blocks/v2/profile/PublicationCard'
 import { WorkBlock_L,WorkBlock_M } from './blocks/v2/profile/ExperienceCard'
+import InfoBlock from './Temp-Blocks'
+
 interface BlockWrapperProps {
   block: Block
-  isActive: boolean // Add this line
+  isActive: boolean
+  onSizeChange?: (blockId: string, newSize: string) => void
 }
 
-const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive }) => {
+const BlockWrapper: React.FC<BlockWrapperProps> = ({ 
+  block, 
+  isActive, 
+  onSizeChange 
+}) => {
   const {
     attributes,
     listeners,
@@ -25,7 +33,7 @@ const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive }) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isActive ? 0.5 : 1, // Add this line
+    opacity: isActive ? 0.5 : 1,
   }
 
   const renderBlock = () => {
@@ -50,7 +58,11 @@ const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive }) => {
         return <WorkBlock_L blockData={block.data as ExperienceCardProps} onClick={() => {}}/>
       case BlockType.ExperienceBlock_M:
         return <WorkBlock_M blockData={block.data as ExperienceCardProps} onClick={() => {}}/>
-      // Add more cases for other block types here
+      case BlockType.InfoBlock:
+        return <InfoBlock 
+          selectedSize={block.size || 'M'} 
+          ChangeSize={(newSize) => onSizeChange?.(block.id, newSize)}
+        />
       default:
         return <div>Unknown block type</div>
     }

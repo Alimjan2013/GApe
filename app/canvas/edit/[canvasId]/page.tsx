@@ -171,6 +171,20 @@ const initialBlocks: Block[] = [
             description: 'Worked on developing and maintaining web applications. Collaborated with cross-functional teams to deliver high-quality software solutions.'
         } as ExperienceCardProps,
     },
+    {
+        id: '12',
+        type: BlockType.InfoBlock,
+        data: {
+            type: 'Full-time',
+            title: 'Software Engineer',
+            company: 'Example Corp',
+            logoUrl: 'https://example.com/logo.png',
+            location: 'Example City, EX',
+            dateRange: 'June 2019 - Present',
+            description: 'Worked on developing and maintaining web applications. Collaborated with cross-functional teams to deliver high-quality software solutions.'
+        } as ExperienceCardProps,
+    },
+
 
 ]
 
@@ -364,6 +378,23 @@ export default function Home() {
         }
     }
 
+    const handleSizeChange = (blockId: string, newSize: string) => {
+        setLeftColumn(prevBlocks => 
+            prevBlocks.map(block => 
+                block.id === blockId 
+                    ? { ...block, size: newSize }
+                    : block
+            )
+        )
+        setRightColumn(prevBlocks => 
+            prevBlocks.map(block => 
+                block.id === blockId 
+                    ? { ...block, size: newSize }
+                    : block
+            )
+        )
+    }
+
     return (
         <div className="flex flex-col items-center gap-4">
             <div className="flex gap-2 flex-wrap justify-center">
@@ -405,11 +436,13 @@ export default function Home() {
                             id='left'
                             blocks={leftColumn}
                             activeId={activeId}
+                            onBlockSizeChange={handleSizeChange}
                         />
                         <Column
                             id='right'
                             blocks={rightColumn}
                             activeId={activeId}
+                            onBlockSizeChange={handleSizeChange}
                         />
                     </div>
                 </main>
