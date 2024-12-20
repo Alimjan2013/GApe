@@ -90,6 +90,7 @@ function CanvasClientWrapper({
                     <BlockWrapper 
                         block={block} 
                         location='sideBar'
+                        onAdd={() => onAddBlock(block)}
                     />
                 </div>
             ))}

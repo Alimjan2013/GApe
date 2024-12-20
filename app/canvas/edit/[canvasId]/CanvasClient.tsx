@@ -14,6 +14,7 @@ import Column from '@/components/Column'
 import BlockWrapper from '@/components/BlockWrapper'
 import { Block } from '@/types'
 import SideBar from './sideBar'
+import { EditBlockSheet } from '@/components/EditBlockSheet'
 
 export default function CanvasClient({ 
     initialBlocks,
@@ -25,9 +26,14 @@ export default function CanvasClient({
     const [leftColumn, setLeftColumn] = useState<Block[]>(initialBlocks.slice(0, 2))
     const [rightColumn, setRightColumn] = useState<Block[]>(initialBlocks.slice(2))
     const [activeId, setActiveId] = useState<string | null>(null)
+    const [editingBlock, setEditingBlock] = useState<Block | null>(null)
 
     const sensors = useSensors(
-        useSensor(PointerSensor),
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
         useSensor(KeyboardSensor)
     )
 
@@ -112,6 +118,27 @@ export default function CanvasClient({
         }
     }
 
+    const handleBlockClick = (block: Block) => {
+        console.log('Block clicked:', block)
+        setEditingBlock(block)
+    }
+
+    const handleSaveBlock = (updatedBlock: Block) => {
+        const updateBlockInColumn = (blocks: Block[], blockToUpdate: Block) => {
+            return blocks.map(block => 
+                block.id === blockToUpdate.id ? blockToUpdate : block
+            )
+        }
+
+        if (leftColumn.some(block => block.id === updatedBlock.id)) {
+            setLeftColumn(blocks => updateBlockInColumn(blocks, updatedBlock))
+        } else {
+            setRightColumn(blocks => updateBlockInColumn(blocks, updatedBlock))
+        }
+
+        setEditingBlock(null)
+    }
+
     return (
         <div className="flex flex-row  gap-1 justify-center">
            
@@ -123,8 +150,8 @@ export default function CanvasClient({
             >
                 <main className='flex flex-col items-center p-2 bg-customeBG2 w-fit  rounded-lg'>
                     <div className='flex w-full max-w-7xl gap-1'>
-                        <Column id='left' blocks={leftColumn} activeId={activeId} />
-                        <Column id='right' blocks={rightColumn} activeId={activeId} />
+                        <Column id='left' blocks={leftColumn} activeId={activeId} onBlockClick={handleBlockClick} />
+                        <Column id='right' blocks={rightColumn} activeId={activeId} onBlockClick={handleBlockClick} />
                     </div>
                 </main>
 
@@ -142,6 +169,13 @@ export default function CanvasClient({
                 </DragOverlay>
             </DndContext>
             <SideBar onAddBlock={handleAddBlock} />
+            
+            <EditBlockSheet
+                block={editingBlock}
+                isOpen={!!editingBlock}
+                onClose={() => setEditingBlock(null)}
+                onSave={handleSaveBlock}
+            />
         </div>
     )
 } 

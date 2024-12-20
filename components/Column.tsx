@@ -8,9 +8,17 @@ interface ColumnProps {
   blocks: Block[]
   activeId: string | null
   id: string
+  onBlockClick: (block: Block) => void
 }
 
-export default function Column({ blocks, activeId, id }: ColumnProps) {
+export default function Column({ blocks, activeId, id, onBlockClick }: ColumnProps) {
+  console.log('Column rendering with blocks:', blocks.length)
+  
+  const handleBlockClick = (block: Block) => {
+    console.log('Column handleBlockClick:', block.id)
+    onBlockClick(block)
+  }
+
   const { setNodeRef } = useDroppable({ 
     id,
     data: {
@@ -29,6 +37,8 @@ export default function Column({ blocks, activeId, id }: ColumnProps) {
               block={block} 
               isActive={block.id === activeId}
               columnId={id}
+              onClick={() => handleBlockClick(block)}
+              location="canvas"
             />
           ))}
           {blocks.length === 0 && (

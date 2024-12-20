@@ -12,11 +12,12 @@ interface BlockWrapperProps {
   block: Block
   isActive?: boolean
   columnId?: string
-  location?: string
+  location: 'canvas' | 'sideBar'
   onClick?: () => void
+  onAdd?: () => void
 }
 
-const BlockWrapper = ({ block, isActive, columnId ,location, onClick}: BlockWrapperProps) => {
+const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onAdd}: BlockWrapperProps) => {
   const {
     attributes,
     listeners,
@@ -37,6 +38,17 @@ const BlockWrapper = ({ block, isActive, columnId ,location, onClick}: BlockWrap
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isActive ? 0.5 : 1,
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    console.log('BlockWrapper click', { transform, location, blockId: block.id })
+    e.stopPropagation()
+
+    if (location === 'sideBar') {
+      onAdd?.()
+    } else if (location === 'canvas' && !transform) {
+      onClick?.()
+    }
   }
 
   const renderBlock = () => {
@@ -68,18 +80,18 @@ const BlockWrapper = ({ block, isActive, columnId ,location, onClick}: BlockWrap
   }
 
   const wrapperClasses = `
-    ${location === 'sideBar' ? 'cursor-pointer' : ''}
+    ${location === 'sideBar' ? 'cursor-pointer hover:opacity-75' : ''}
     ${location === 'canvas' ? 'cursor-move' : ''}
+    relative
   `
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      {...(location === 'canvas' ? { ...attributes, ...listeners } : {})}
       className={wrapperClasses}
-      onClick={onClick}
+      onClick={handleClick}
     >
       {renderBlock()}
     </div>
