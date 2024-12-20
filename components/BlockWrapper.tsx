@@ -10,11 +10,13 @@ import { PublicationBlock_L,PublicationBlock_M } from './blocks/v2/profile/Publi
 import { WorkBlock_L,WorkBlock_M } from './blocks/v2/profile/ExperienceCard'
 interface BlockWrapperProps {
   block: Block
-  isActive: boolean
-  columnId: string
+  isActive?: boolean
+  columnId?: string
+  location?: string
+  onClick?: () => void
 }
 
-const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive, columnId }) => {
+const BlockWrapper = ({ block, isActive, columnId ,location, onClick}: BlockWrapperProps) => {
   const {
     attributes,
     listeners,
@@ -26,7 +28,8 @@ const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive, columnId }
     data: {
       type: 'block',
       block,
-      columnId
+      columnId,
+      location
     }
   })
 
@@ -64,13 +67,19 @@ const BlockWrapper: React.FC<BlockWrapperProps> = ({ block, isActive, columnId }
     }
   }
 
+  const wrapperClasses = `
+    ${location === 'sideBar' ? 'cursor-pointer' : ''}
+    ${location === 'canvas' ? 'cursor-move' : ''}
+  `
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className="cursor-move"
+      className={wrapperClasses}
+      onClick={onClick}
     >
       {renderBlock()}
     </div>
