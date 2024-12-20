@@ -86,9 +86,28 @@ export interface InfoBlockProps {
   image: string
 }
 
+export interface Position {
+  x: number
+  y: number
+}
+
 export interface Block {
+  id: string;
+  type: BlockType;
+  data: ProfileCardProps | ProjectCardProps | EducationCardProps | PublicationCardProps | ExperienceCardProps;
+  is_active: boolean;
+  order_index: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface BlockTemplate {
   id: string
-  type: BlockType
-  data: ProfileCardProps | ProjectCardProps | InfoBlockProps | EducationCardProps | ExperienceCardProps | PublicationCardProps | SkillsCardProps
+  created_at: string
+  updated_at: string
+  type: string
+  data: any
+  is_active: boolean
+  order_index: number
 }
 
