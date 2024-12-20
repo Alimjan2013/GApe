@@ -9,21 +9,25 @@ import Loading from './loading'
 import BlockWrapper from '@/components/BlockWrapper'
 
 export default function SideBar({ 
-    onAddBlock 
+    onAddBlock,
+    size
 }: { 
     onAddBlock: (block: Block) => void 
+    size: 'sideBar' | 'drawer'
 }) {
     return (
         <Suspense fallback={<Loading />}>
-            <CanvasClientWrapper onAddBlock={onAddBlock} />
+            <CanvasClientWrapper size={size} onAddBlock={onAddBlock} />
         </Suspense>
     )
 }
 
 function CanvasClientWrapper({ 
-    onAddBlock 
+    onAddBlock,
+    size
 }: { 
     onAddBlock: (block: Block) => void 
+    size: 'sideBar' | 'drawer'
 }) {
     const [blocks, setBlocks] = useState<Block[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -80,7 +84,8 @@ function CanvasClientWrapper({
     }
 
     return (
-        <div className='flex flex-col items-center gap-2 p-2 bg-customeBG2 rounded-lg overflow-y-scroll'>
+       
+        <div className={`flex gap-2 p-2 bg-customeBG2 rounded-lg overflow-y-scroll ${size === 'drawer' ? 'flex-row flex-wrap w-full max-h-[60vh] justify-center' : 'flex-col items-center'}`}>
             {blocks.map((block) => (
                 <div 
                     key={block.id}

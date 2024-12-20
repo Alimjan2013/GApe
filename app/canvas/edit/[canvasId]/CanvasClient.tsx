@@ -1,3 +1,5 @@
+/** @format */
+
 'use client'
 
 import { useState } from 'react'
@@ -15,16 +17,30 @@ import BlockWrapper from '@/components/BlockWrapper'
 import { Block } from '@/types'
 import SideBar from './sideBar'
 import { EditBlockSheet } from '@/components/EditBlockSheet'
+import { Button } from '@/components/ui/button'
+import {
+    Drawer,
+    DrawerClose,
+    DrawerContent,
+    DrawerDescription,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerTrigger,
+} from '@/components/ui/drawer'
+import { Plus } from 'lucide-react'
 
-export default function CanvasClient({ 
+export default function CanvasClient({
     initialBlocks,
-    canvasId 
-}: { 
+    canvasId,
+}: {
     initialBlocks: Block[]
-    canvasId: string 
+    canvasId: string
 }) {
-    const [leftColumn, setLeftColumn] = useState<Block[]>(initialBlocks.slice(0, 2))
-    const [rightColumn, setRightColumn] = useState<Block[]>(initialBlocks.slice(2))
+    const [columns, setColumns] = useState<Block[][]>([
+        initialBlocks.slice(0, 2),
+        initialBlocks.slice(2),
+    ])
     const [activeId, setActiveId] = useState<string | null>(null)
     const [editingBlock, setEditingBlock] = useState<Block | null>(null)
 
@@ -37,130 +53,181 @@ export default function CanvasClient({
         useSensor(KeyboardSensor)
     )
 
+    const handleColumnCountChange = (count: number) => {
+        const allBlocks = columns.flat()
+        const blocksPerColumn = Math.ceil(allBlocks.length / count)
+        const newColumns: Block[][] = []
+
+        for (let i = 0; i < count; i++) {
+            newColumns.push(
+                allBlocks.slice(i * blocksPerColumn, (i + 1) * blocksPerColumn)
+            )
+        }
+
+        setColumns(newColumns)
+    }
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event
         if (!over) return
 
-        const activeBlock = [...leftColumn, ...rightColumn].find(
-            block => block.id === active.id
-        )
+        const allBlocks = columns.flat()
+        const activeBlock = allBlocks.find((block) => block.id === active.id)
         if (!activeBlock) return
 
-        // Check if dropping on a column or block
-        const isColumn = over.id === 'left' || over.id === 'right'
-        const targetColumnId = isColumn ? over.id as 'left' | 'right' : 
-            (over.data?.current?.columnId as 'left' | 'right')
+        const isColumn =
+            typeof over.id === 'string' && over.id.startsWith('column-')
+        const targetColumnId = isColumn
+            ? Number(String(over.id).split('-')[1])
+            : Number(String(over.data?.current?.columnId).split('-')[1])
 
-        const sourceColumn = leftColumn.includes(activeBlock) ? leftColumn : rightColumn
-        const targetColumn = targetColumnId === 'left' ? leftColumn : rightColumn
-        
-        const setSourceColumn = leftColumn.includes(activeBlock) ? setLeftColumn : setRightColumn
-        const setTargetColumn = targetColumnId === 'left' ? setLeftColumn : setRightColumn
+        const sourceColumnIndex = columns.findIndex((column) =>
+            column.some((block) => block.id === active.id)
+        )
 
-        // If dropping into a different column
-        if (sourceColumn !== targetColumn) {
-            setSourceColumn(blocks => blocks.filter(block => block.id !== activeBlock.id))
-            
+        if (sourceColumnIndex === -1) return
+
+        setColumns((currentColumns) => {
+            const newColumns = [...currentColumns]
+
+            newColumns[sourceColumnIndex] = newColumns[
+                sourceColumnIndex
+            ].filter((block) => block.id !== activeBlock.id)
+
             if (isColumn) {
-                // Add to the end of the column
-                setTargetColumn(blocks => [...blocks, activeBlock])
+                newColumns[targetColumnId] = [
+                    ...newColumns[targetColumnId],
+                    activeBlock,
+                ]
             } else {
-                // Insert at specific position
                 const overBlockId = over.id as string
-                setTargetColumn(blocks => {
-                    const overIndex = blocks.findIndex(block => block.id === overBlockId)
-                    const newBlocks = [...blocks]
-                    newBlocks.splice(overIndex, 0, activeBlock)
-                    return newBlocks
-                })
+                const targetColumn = newColumns[targetColumnId]
+                const overIndex = targetColumn.findIndex(
+                    (block) => block.id === overBlockId
+                )
+                newColumns[targetColumnId] = [
+                    ...targetColumn.slice(0, overIndex),
+                    activeBlock,
+                    ...targetColumn.slice(overIndex),
+                ]
             }
-        } else {
-            // Reordering within the same column
-            if (!isColumn) {
-                setSourceColumn(blocks => {
-                    const oldIndex = blocks.findIndex(block => block.id === active.id)
-                    const newIndex = blocks.findIndex(block => block.id === over.id)
-                    const newBlocks = [...blocks]
-                    newBlocks.splice(oldIndex, 1)
-                    newBlocks.splice(newIndex, 0, activeBlock)
-                    return newBlocks
-                })
-            }
-        }
+
+            return newColumns
+        })
 
         setActiveId(null)
     }
 
-    const getBlockColumn = (blockId: string): 'left' | 'right' => {
-        if (leftColumn.some(block => block.id === blockId)) {
-            return 'left'
+    const getBlockColumn = (blockId: string): string => {
+        for (let i = 0; i < columns.length; i++) {
+            if (columns[i].some((block) => block.id === blockId)) {
+                return `column-${i}`
+            }
         }
-        if (rightColumn.some(block => block.id === blockId)) {
-            return 'right'
-        }
-        // Fallback to prevent undefined - though this should never happen
-        console.warn('Block not found in either column:', blockId)
-        return 'left'
+        console.warn('Block not found in any column:', blockId)
+        return 'column-0'
     }
 
     const handleAddBlock = (templateBlock: Block) => {
-        // Create a new block with a unique ID
         const newBlock = {
             ...templateBlock,
             id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         }
-        
-        // Add to the left column if it has fewer blocks, otherwise to the right
-        if (leftColumn.length <= rightColumn.length) {
-            setLeftColumn(blocks => [...blocks, newBlock])
-        } else {
-            setRightColumn(blocks => [...blocks, newBlock])
-        }
-    }
 
-    const handleBlockClick = (block: Block) => {
-        console.log('Block clicked:', block)
-        setEditingBlock(block)
+        const columnLengths = columns.map((col) => col.length)
+        const minLength = Math.min(...columnLengths)
+        const targetColumnIndex = columnLengths.indexOf(minLength)
+
+        setColumns((currentColumns) => {
+            const newColumns = [...currentColumns]
+            newColumns[targetColumnIndex] = [
+                ...newColumns[targetColumnIndex],
+                newBlock,
+            ]
+            return newColumns
+        })
     }
 
     const handleSaveBlock = (updatedBlock: Block) => {
-        const updateBlockInColumn = (blocks: Block[], blockToUpdate: Block) => {
-            return blocks.map(block => 
-                block.id === blockToUpdate.id ? blockToUpdate : block
+        setColumns((currentColumns) =>
+            currentColumns.map((column) =>
+                column.map((block) =>
+                    block.id === updatedBlock.id ? updatedBlock : block
+                )
             )
-        }
-
-        if (leftColumn.some(block => block.id === updatedBlock.id)) {
-            setLeftColumn(blocks => updateBlockInColumn(blocks, updatedBlock))
-        } else {
-            setRightColumn(blocks => updateBlockInColumn(blocks, updatedBlock))
-        }
-
+        )
         setEditingBlock(null)
     }
 
+    const showSidebarAsDrawer = columns.length > 2
+
     return (
-        <div className="flex flex-row  gap-1 justify-center">
-           
+        <div className='flex flex-col  justify-center gap-2 py-2'>
+            <div className='flex flex-row gap-1 justify-center'>
+            {[1, 2, 3, ].map((count) => (
+                <Button
+                    key={count}
+                    onClick={() => handleColumnCountChange(count)}
+                    variant={columns.length === count ? 'default' : 'outline'}
+                >
+                    {count} Columns
+                </Button>
+            ))}
+            </div>
+            
+             <div className='flex flex-row gap-1 justify-center'>
+            
             <DndContext
                 sensors={sensors}
                 onDragStart={({ active }) => setActiveId(active.id.toString())}
                 onDragEnd={handleDragEnd}
                 onDragCancel={() => setActiveId(null)}
             >
-                <main className='flex flex-col items-center p-2 bg-customeBG2 w-fit  rounded-lg'>
+                <main className='flex flex-col items-center p-2 bg-customeBG2 w-fit max-w-screen-2xl overflow-hidden overflow-x-scroll rounded-lg relative'>
+                    <div className='flex gap-2 mb-4'></div>
                     <div className='flex w-full max-w-7xl gap-1'>
-                        <Column id='left' blocks={leftColumn} activeId={activeId} onBlockClick={handleBlockClick} />
-                        <Column id='right' blocks={rightColumn} activeId={activeId} onBlockClick={handleBlockClick} />
+                        {columns.map((columnBlocks, index) => (
+                            <Column
+                                key={`column-${index}`}
+                                id={`column-${index}`}
+                                blocks={columnBlocks}
+                                activeId={activeId}
+                                onBlockClick={setEditingBlock}
+                            />
+                        ))}
                     </div>
+
+                    {showSidebarAsDrawer && (
+                        <Drawer>
+                            <DrawerTrigger asChild>
+                                <Button
+                                    className='fixed bottom-4 right-4 h-14 w-14 rounded-full'
+                                    size='icon'
+                                >
+                                    <Plus className='h-6 w-6' />
+                                </Button>
+                            </DrawerTrigger>
+                            <DrawerContent>
+                                <DrawerHeader>
+                                    <DrawerTitle>pick a block</DrawerTitle>
+                                </DrawerHeader>
+                                <SideBar
+                                    size='drawer'
+                                    onAddBlock={handleAddBlock}
+                                />
+                            </DrawerContent>
+                        </Drawer>
+                    )}
                 </main>
 
                 <DragOverlay>
                     {activeId && (
                         <BlockWrapper
-                            block={[...leftColumn, ...rightColumn].find(
-                                block => block.id === activeId
-                            )!}
+                            block={
+                                columns
+                                    .flat()
+                                    .find((block) => block.id === activeId)!
+                            }
                             isActive={true}
                             columnId={getBlockColumn(activeId)}
                             location='canvas'
@@ -168,8 +235,11 @@ export default function CanvasClient({
                     )}
                 </DragOverlay>
             </DndContext>
-            <SideBar onAddBlock={handleAddBlock} />
-            
+
+            {!showSidebarAsDrawer && (
+                <SideBar size='sideBar' onAddBlock={handleAddBlock} />
+            )}
+
             <EditBlockSheet
                 block={editingBlock}
                 isOpen={!!editingBlock}
@@ -177,5 +247,7 @@ export default function CanvasClient({
                 onSave={handleSaveBlock}
             />
         </div>
+        </div>
+       
     )
-} 
+}
