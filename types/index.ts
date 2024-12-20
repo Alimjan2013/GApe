@@ -92,11 +92,13 @@ export interface Position {
 }
 
 export interface Block {
-  id: string
-  type: string
-  data: any
-  position: Position
-  parentId: string | null
+  id: string;
+  type: BlockType;
+  data: ProfileCardProps | ProjectCardProps | EducationCardProps | PublicationCardProps | ExperienceCardProps;
+  is_active: boolean;
+  order_index: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface BlockTemplate {
