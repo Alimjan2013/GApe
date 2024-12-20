@@ -84,6 +84,18 @@ export default function CanvasClient({
         setActiveId(null)
     }
 
+    const getBlockColumn = (blockId: string): 'left' | 'right' => {
+        if (leftColumn.some(block => block.id === blockId)) {
+            return 'left'
+        }
+        if (rightColumn.some(block => block.id === blockId)) {
+            return 'right'
+        }
+        // Fallback to prevent undefined - though this should never happen
+        console.warn('Block not found in either column:', blockId)
+        return 'left'
+    }
+
     return (
         <div className="flex flex-col items-center gap-4">
             <DndContext
@@ -106,7 +118,7 @@ export default function CanvasClient({
                                 block => block.id === activeId
                             )!}
                             isActive={true}
-                            columnId={leftColumn.find(block => block.id === activeId) ? 'left' : 'right'}
+                            columnId={getBlockColumn(activeId)}
                         />
                     )}
                 </DragOverlay>
