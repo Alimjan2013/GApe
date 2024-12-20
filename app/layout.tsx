@@ -38,7 +38,7 @@ export default function RootLayout({
                     <HeaderMenu>
                         <UserInfo />
                     </HeaderMenu>
-                    <div className='flex-grow'>{children}</div>
+                    <div className='h-full'>{children}</div>
                 </div>
 
                 <Toaster closeButton />

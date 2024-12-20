@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation'
 export default function Layout() {
     const router = useRouter()
     return (
-        <div className='flex flex-col flex-grow items-center justify-center'>
+        <div className='flex flex-col  items-center justify-center'>
             <div className='h-screen w-full flex items-center justify-center py-10'>
                 {/* <header>This is header</header> */}
                 <Card className='shadow-md rounded-3xl h-fit w-fit bg-slate-50 p-5 border-hidden'>

@@ -13,6 +13,7 @@ import {
 import Column from '@/components/Column'
 import BlockWrapper from '@/components/BlockWrapper'
 import { Block } from '@/types'
+import SideBar from './sideBar'
 
 export default function CanvasClient({ 
     initialBlocks,
@@ -96,15 +97,31 @@ export default function CanvasClient({
         return 'left'
     }
 
+    const handleAddBlock = (templateBlock: Block) => {
+        // Create a new block with a unique ID
+        const newBlock = {
+            ...templateBlock,
+            id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        }
+        
+        // Add to the left column if it has fewer blocks, otherwise to the right
+        if (leftColumn.length <= rightColumn.length) {
+            setLeftColumn(blocks => [...blocks, newBlock])
+        } else {
+            setRightColumn(blocks => [...blocks, newBlock])
+        }
+    }
+
     return (
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-row  gap-1 justify-center">
+           
             <DndContext
                 sensors={sensors}
                 onDragStart={({ active }) => setActiveId(active.id.toString())}
                 onDragEnd={handleDragEnd}
                 onDragCancel={() => setActiveId(null)}
             >
-                <main className='flex flex-col items-center p-2 bg-customeBG2 w-fit m-auto rounded-lg'>
+                <main className='flex flex-col items-center p-2 bg-customeBG2 w-fit  rounded-lg'>
                     <div className='flex w-full max-w-7xl gap-1'>
                         <Column id='left' blocks={leftColumn} activeId={activeId} />
                         <Column id='right' blocks={rightColumn} activeId={activeId} />
@@ -119,10 +136,12 @@ export default function CanvasClient({
                             )!}
                             isActive={true}
                             columnId={getBlockColumn(activeId)}
+                            location='canvas'
                         />
                     )}
                 </DragOverlay>
             </DndContext>
+            <SideBar onAddBlock={handleAddBlock} />
         </div>
     )
 } 
