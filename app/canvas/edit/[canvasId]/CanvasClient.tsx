@@ -29,6 +29,7 @@ import {
     DrawerTrigger,
 } from '@/components/ui/drawer'
 import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function CanvasClient({
     initialBlocks,
@@ -126,6 +127,7 @@ export default function CanvasClient({
 
         await saveBlocks()
         setActiveId(null)
+        
     }
 
     const getBlockColumn = (blockId: string): string => {
@@ -196,7 +198,7 @@ export default function CanvasClient({
 
     const saveBlocks = useCallback(async () => {
         console.log('Saving blocks for canvas:', canvasId)
-        
+
         const currentBlockIds = new Set(columns.flat().map(block => block.id))
         const blocks = columns.flatMap((column, columnIndex) => 
             column.map((block, orderIndex) => ({
@@ -207,7 +209,6 @@ export default function CanvasClient({
                 data: block.data
             }))
         )
-
         try {
             const response = await fetch('/api/blocks', {
                 method: 'POST',
@@ -224,9 +225,15 @@ export default function CanvasClient({
             if (!response.ok) {
                 throw new Error('Failed to save blocks')
             }
-            console.log('Blocks saved successfully')
+
+            const data = await response.json()
+            const deletedCount = data.deletedBlocks?.length || 0
+            toast.success(
+                `Canvas saved successfully${deletedCount ? ` (${deletedCount} blocks cleaned up)` : ''}`
+            )
         } catch (error) {
             console.error('Error saving blocks:', error)
+            toast.error('Failed to save canvas')
         }
     }, [columns, canvasId])
 

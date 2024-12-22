@@ -58,6 +58,7 @@ export default async function CanvasPage({ params }: PageProps) {
         initialBlocks={initialBlocks}
         canvasId={canvasId}
       />
+      
     </div>
   )
 }
