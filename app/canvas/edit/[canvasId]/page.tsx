@@ -4,15 +4,16 @@ import CanvasClient from './CanvasClient'
 import { Block } from '@/types'
 
 interface PageProps {
-  params: {
+  params: Promise<{
     canvasId: string
-  }
+  }>
 }
 
-export default async function CanvasPage({ params }: PageProps) {
+export default async function CanvasPage(props: PageProps) {
+  const params = await props.params;
   const { canvasId } = params
   const supabase = await createClient()
-  
+
   // Fetch initial blocks for this canvas
   const { data: blocks, error } = await supabase
     .from('gape_blocks')
