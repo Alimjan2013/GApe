@@ -169,12 +169,35 @@ export default function CanvasClient({
         setEditingBlock(null)
     }
 
+    const handleDeleteBlock = async (blockId: string) => {
+        setColumns(currentColumns => {
+            // First filter out the block from all columns
+            const columnsWithoutBlock = currentColumns.map(column =>
+                column.filter(block => block.id !== blockId)
+            )
+
+            // Then remove any empty columns, but keep at least 2 columns
+            const nonEmptyColumns = columnsWithoutBlock.filter(column => column.length > 0)
+            const finalColumns = nonEmptyColumns.length >= 2 
+                ? nonEmptyColumns 
+                : [...nonEmptyColumns, ...Array(2 - nonEmptyColumns.length).fill([])]
+
+            // Update column count if needed
+            if (finalColumns.length !== currentColumns.length) {
+                setColumnCount(finalColumns.length)
+            }
+
+            return finalColumns
+        })
+      
+    }
+
     const showSidebarAsDrawer = columns.length > 2
 
     const saveBlocks = useCallback(async () => {
         console.log('Saving blocks for canvas:', canvasId)
-        console.log('Columns:', columns)
         
+        const currentBlockIds = new Set(columns.flat().map(block => block.id))
         const blocks = columns.flatMap((column, columnIndex) => 
             column.map((block, orderIndex) => ({
                 columnIndex: columnIndex,
@@ -184,7 +207,6 @@ export default function CanvasClient({
                 data: block.data
             }))
         )
-        console.log('Blocks:', blocks)
 
         try {
             const response = await fetch('/api/blocks', {
@@ -193,8 +215,9 @@ export default function CanvasClient({
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
-                    blocks, 
-                    canvasId
+                    blocks,
+                    canvasId,
+                    currentBlockIds: Array.from(currentBlockIds)
                 }),
             })
 
@@ -248,6 +271,7 @@ export default function CanvasClient({
                                 blocks={columnBlocks}
                                 activeId={activeId}
                                 onBlockClick={setEditingBlock}
+                                onDeleteBlock={handleDeleteBlock}
                             />
                         ))}
                     </div>
