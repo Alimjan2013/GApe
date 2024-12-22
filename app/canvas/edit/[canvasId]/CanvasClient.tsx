@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import {
     DndContext,
     DragOverlay,
@@ -161,6 +161,39 @@ export default function CanvasClient({
 
     const showSidebarAsDrawer = columns.length > 2
 
+    const saveBlocks = useCallback(async () => {
+        console.log('Saving blocks for canvas:', canvasId)
+        
+        const blocks = columns.flatMap((column, columnIndex) => 
+            column.map((block, orderIndex) => ({
+                columnIndex,
+                orderIndex,
+                type: block.type,
+                data: block.data
+            }))
+        )
+
+        try {
+            const response = await fetch('/api/blocks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    blocks, 
+                    canvasId
+                }),
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to save blocks')
+            }
+            console.log('Blocks saved successfully')
+        } catch (error) {
+            console.error('Error saving blocks:', error)
+        }
+    }, [columns, canvasId])
+
     return (
         <div className='flex flex-col  justify-center gap-2 py-2'>
             <div className='flex flex-row gap-1 justify-center'>
@@ -173,6 +206,7 @@ export default function CanvasClient({
                     {count} Columns
                 </Button>
             ))}
+            <button onClick={saveBlocks}>save blocks</button>
             </div>
             
              <div className='flex flex-row gap-1 justify-center'>

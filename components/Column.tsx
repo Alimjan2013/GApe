@@ -12,11 +12,23 @@ interface ColumnProps {
 }
 
 export default function Column({ blocks, activeId, id, onBlockClick }: ColumnProps) {
-  console.log('Column rendering with blocks:', blocks.length)
+  // console.log('Column rendering with blocks:', blocks.length)
   
   const handleBlockClick = (block: Block) => {
     console.log('Column handleBlockClick:', block.id)
     onBlockClick(block)
+  }
+
+  const handleBlockUpdate = (blockIndex: number, newData: any) => {
+    // Update the block data in your state management system
+    // This depends on how you're managing state in your application
+    // For example, if using useState:
+    const newBlocks = [...blocks]
+    newBlocks[blockIndex] = {
+      ...newBlocks[blockIndex],
+      data: newData
+    }
+    // Call your update function here
   }
 
   const { setNodeRef } = useDroppable({ 
@@ -31,7 +43,7 @@ export default function Column({ blocks, activeId, id, onBlockClick }: ColumnPro
     <div className="flex-1">
       <SortableContext items={blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}>
         <div ref={setNodeRef} className="flex flex-col gap-2 p-1 bg-gray-100 rounded-lg">
-          {blocks.map((block) => (
+          {blocks.map((block, blockIndex) => (
             <BlockWrapper 
               key={block.id} 
               block={block} 
@@ -39,6 +51,7 @@ export default function Column({ blocks, activeId, id, onBlockClick }: ColumnPro
               columnId={id}
               onClick={() => handleBlockClick(block)}
               location="canvas"
+              onUpdate={(newData) => handleBlockUpdate(blockIndex, newData)}
             />
           ))}
           {blocks.length === 0 && (

@@ -12,12 +12,13 @@ interface BlockWrapperProps {
   block: Block
   isActive?: boolean
   columnId?: string
-  location: 'canvas' | 'sideBar'
   onClick?: () => void
+  location: 'canvas' | 'sideBar'
+  onUpdate?: (newData: any) => void
   onAdd?: () => void
 }
 
-const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onAdd}: BlockWrapperProps) => {
+const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onUpdate, onAdd}: BlockWrapperProps) => {
   const {
     attributes,
     listeners,
