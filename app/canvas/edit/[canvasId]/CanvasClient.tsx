@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
     DndContext,
     DragOverlay,
@@ -29,18 +29,17 @@ import {
     DrawerTrigger,
 } from '@/components/ui/drawer'
 import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function CanvasClient({
     initialBlocks,
     canvasId,
 }: {
-    initialBlocks: Block[]
+    initialBlocks: Block[][]
     canvasId: string
 }) {
-    const [columns, setColumns] = useState<Block[][]>([
-        initialBlocks.slice(0, 2),
-        initialBlocks.slice(2),
-    ])
+    const [mounted, setMounted] = useState(false)
+    const [columns, setColumns] = useState<Block[][]>(initialBlocks)
     const [activeId, setActiveId] = useState<string | null>(null)
     const [editingBlock, setEditingBlock] = useState<Block | null>(null)
 
@@ -52,6 +51,13 @@ export default function CanvasClient({
         }),
         useSensor(KeyboardSensor)
     )
+
+    const getInitialColumnCount = useCallback(() => {
+        const nonEmptyColumns = initialBlocks.filter(col => col.length > 0)
+        return Math.max(nonEmptyColumns.length || 1, 2) // Minimum 2 columns
+    }, [initialBlocks])
+
+    const [columnCount, setColumnCount] = useState(getInitialColumnCount())
 
     const handleColumnCountChange = (count: number) => {
         const allBlocks = columns.flat()
@@ -65,18 +71,24 @@ export default function CanvasClient({
         }
 
         setColumns(newColumns)
+        setColumnCount(count)
     }
 
-    const handleDragEnd = (event: DragEndEvent) => {
+    const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event
-        if (!over) return
+        if (!over) {
+            setActiveId(null)
+            return
+        }
 
         const allBlocks = columns.flat()
         const activeBlock = allBlocks.find((block) => block.id === active.id)
-        if (!activeBlock) return
+        if (!activeBlock) {
+            setActiveId(null)
+            return
+        }
 
-        const isColumn =
-            typeof over.id === 'string' && over.id.startsWith('column-')
+        const isColumn = typeof over.id === 'string' && over.id.startsWith('column-')
         const targetColumnId = isColumn
             ? Number(String(over.id).split('-')[1])
             : Number(String(over.data?.current?.columnId).split('-')[1])
@@ -89,10 +101,8 @@ export default function CanvasClient({
 
         setColumns((currentColumns) => {
             const newColumns = [...currentColumns]
-
-            newColumns[sourceColumnIndex] = newColumns[
-                sourceColumnIndex
-            ].filter((block) => block.id !== activeBlock.id)
+            newColumns[sourceColumnIndex] = newColumns[sourceColumnIndex]
+                .filter((block) => block.id !== activeBlock.id)
 
             if (isColumn) {
                 newColumns[targetColumnId] = [
@@ -115,7 +125,9 @@ export default function CanvasClient({
             return newColumns
         })
 
+        await saveBlocks()
         setActiveId(null)
+        
     }
 
     const getBlockColumn = (blockId: string): string => {
@@ -159,20 +171,93 @@ export default function CanvasClient({
         setEditingBlock(null)
     }
 
+    const handleDeleteBlock = async (blockId: string) => {
+        setColumns(currentColumns => {
+            // First filter out the block from all columns
+            const columnsWithoutBlock = currentColumns.map(column =>
+                column.filter(block => block.id !== blockId)
+            )
+
+            // Then remove any empty columns, but keep at least 2 columns
+            const nonEmptyColumns = columnsWithoutBlock.filter(column => column.length > 0)
+            const finalColumns = nonEmptyColumns.length >= 2 
+                ? nonEmptyColumns 
+                : [...nonEmptyColumns, ...Array(2 - nonEmptyColumns.length).fill([])]
+
+            // Update column count if needed
+            if (finalColumns.length !== currentColumns.length) {
+                setColumnCount(finalColumns.length)
+            }
+
+            return finalColumns
+        })
+      
+    }
+
     const showSidebarAsDrawer = columns.length > 2
 
+    const saveBlocks = useCallback(async () => {
+        console.log('Saving blocks for canvas:', canvasId)
+
+        const currentBlockIds = new Set(columns.flat().map(block => block.id))
+        const blocks = columns.flatMap((column, columnIndex) => 
+            column.map((block, orderIndex) => ({
+                columnIndex: columnIndex,
+                orderIndex,
+                id: block.id,
+                type: block.type,
+                data: block.data
+            }))
+        )
+        try {
+            const response = await fetch('/api/blocks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    blocks,
+                    canvasId,
+                    currentBlockIds: Array.from(currentBlockIds)
+                }),
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to save blocks')
+            }
+
+            const data = await response.json()
+            const deletedCount = data.deletedBlocks?.length || 0
+            toast.success(
+                `Canvas saved successfully${deletedCount ? ` (${deletedCount} blocks cleaned up)` : ''}`
+            )
+        } catch (error) {
+            console.error('Error saving blocks:', error)
+            toast.error('Failed to save canvas')
+        }
+    }, [columns, canvasId])
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) {
+        return null
+    }
+
     return (
-        <div className='flex flex-col  justify-center gap-2 py-2'>
+        <div className='flex flex-col justify-center gap-2 py-2'>
             <div className='flex flex-row gap-1 justify-center'>
             {[1, 2, 3, ].map((count) => (
                 <Button
                     key={count}
                     onClick={() => handleColumnCountChange(count)}
-                    variant={columns.length === count ? 'default' : 'outline'}
+                    variant={columnCount === count ? 'default' : 'outline'}
                 >
                     {count} Columns
                 </Button>
             ))}
+            <button onClick={saveBlocks}>save blocks</button>
             </div>
             
              <div className='flex flex-row gap-1 justify-center'>
@@ -193,6 +278,7 @@ export default function CanvasClient({
                                 blocks={columnBlocks}
                                 activeId={activeId}
                                 onBlockClick={setEditingBlock}
+                                onDeleteBlock={handleDeleteBlock}
                             />
                         ))}
                     </div>

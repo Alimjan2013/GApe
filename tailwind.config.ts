@@ -20,7 +20,7 @@ const config: Config = {
                 customeText1:"#128149",
                 customeText2:"#0E3C26",
 
-                background: 'hsl(var(--background))',
+                background: '#FAF3EA',
                 foreground: 'hsl(var(--foreground))',
                 card: {
                     DEFAULT: 'hsl(var(--card))',

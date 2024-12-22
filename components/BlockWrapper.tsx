@@ -8,16 +8,32 @@ import { ProjectBlock_L,ProjectBlock_M } from './blocks/v2/profile/ProjectCard'
 import { EduBlock_L,EduBlock_M } from './blocks/v2/profile/EducationCard'
 import { PublicationBlock_L,PublicationBlock_M } from './blocks/v2/profile/PublicationCard'
 import { WorkBlock_L,WorkBlock_M } from './blocks/v2/profile/ExperienceCard'
+import { Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 interface BlockWrapperProps {
   block: Block
   isActive?: boolean
   columnId?: string
-  location: 'canvas' | 'sideBar'
   onClick?: () => void
+  location: 'canvas' | 'sideBar'
+  onUpdate?: (newData: any) => void
   onAdd?: () => void
+  onDelete?: (blockId: string) => void
 }
 
-const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onAdd}: BlockWrapperProps) => {
+const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onUpdate, onAdd, onDelete}: BlockWrapperProps) => {
   const {
     attributes,
     listeners,
@@ -41,6 +57,10 @@ const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onAdd}: Bl
   }
 
   const handleClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.delete-trigger')) {
+      return;
+    }
+
     console.log('BlockWrapper click', { transform, location, blockId: block.id })
     e.stopPropagation()
 
@@ -83,6 +103,7 @@ const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onAdd}: Bl
     ${location === 'sideBar' ? 'cursor-pointer hover:opacity-75' : ''}
     ${location === 'canvas' ? 'cursor-move' : ''}
     relative
+    group
   `
 
   return (
@@ -93,6 +114,42 @@ const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onAdd}: Bl
       className={wrapperClasses}
       onClick={handleClick}
     >
+      {location === 'canvas' && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="destructive"
+              size="icon"
+              className="delete-trigger absolute -top-2 -right-2 h-8 w-8 rounded-full z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent onClick={e => e.stopPropagation()}>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the block.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={e => e.stopPropagation()}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete?.(block.id);
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
       {renderBlock()}
     </div>
   )
