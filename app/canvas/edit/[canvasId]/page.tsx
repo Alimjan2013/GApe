@@ -25,13 +25,38 @@ export default async function CanvasPage({ params }: PageProps) {
     console.error('Error fetching blocks:', error)
   }
 
-  const initialBlocks: Block[] = blocks || []
+  // Transform blocks into column-based structure
+  const transformedBlocks = blocks?.reduce<Block[][]>((acc, block) => {
+    // Ensure the column array exists
+    if (!acc[block.column_number]) {
+      acc[block.column_number] = []
+    }
+    
+    // Add block to its column array
+    acc[block.column_number].push({
+      id: block.id,
+      type: block.type,
+      data: block.data,
+      is_active: block.is_active,
+      order_index: block.order_index
+    } as Block)
+    
+    return acc
+  }, []) || []
+
+  // Filter out any empty columns and ensure we have at least 2 columns
+  const initialBlocks = transformedBlocks.filter(column => column?.length > 0)
+  if (initialBlocks.length === 0) {
+    initialBlocks.push([], []) // Initialize with two empty columns
+  } else if (initialBlocks.length === 1) {
+    initialBlocks.push([]) // Add a second empty column
+  }
 
   return (
     <div className="container mx-auto">
       <CanvasClient 
         initialBlocks={initialBlocks}
-        canvasId={canvasId}  // Fixed: passing canvasId string instead of blocks array
+        canvasId={canvasId}
       />
     </div>
   )

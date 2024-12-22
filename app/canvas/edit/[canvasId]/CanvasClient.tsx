@@ -34,13 +34,10 @@ export default function CanvasClient({
     initialBlocks,
     canvasId,
 }: {
-    initialBlocks: Block[]
+    initialBlocks: Block[][]
     canvasId: string
 }) {
-    const [columns, setColumns] = useState<Block[][]>([
-        initialBlocks.slice(0, 2),
-        initialBlocks.slice(2),
-    ])
+    const [columns, setColumns] = useState<Block[][]>(initialBlocks)
     const [activeId, setActiveId] = useState<string | null>(null)
     const [editingBlock, setEditingBlock] = useState<Block | null>(null)
 
@@ -67,16 +64,21 @@ export default function CanvasClient({
         setColumns(newColumns)
     }
 
-    const handleDragEnd = (event: DragEndEvent) => {
+    const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event
-        if (!over) return
+        if (!over) {
+            setActiveId(null)
+            return
+        }
 
         const allBlocks = columns.flat()
         const activeBlock = allBlocks.find((block) => block.id === active.id)
-        if (!activeBlock) return
+        if (!activeBlock) {
+            setActiveId(null)
+            return
+        }
 
-        const isColumn =
-            typeof over.id === 'string' && over.id.startsWith('column-')
+        const isColumn = typeof over.id === 'string' && over.id.startsWith('column-')
         const targetColumnId = isColumn
             ? Number(String(over.id).split('-')[1])
             : Number(String(over.data?.current?.columnId).split('-')[1])
@@ -89,10 +91,8 @@ export default function CanvasClient({
 
         setColumns((currentColumns) => {
             const newColumns = [...currentColumns]
-
-            newColumns[sourceColumnIndex] = newColumns[
-                sourceColumnIndex
-            ].filter((block) => block.id !== activeBlock.id)
+            newColumns[sourceColumnIndex] = newColumns[sourceColumnIndex]
+                .filter((block) => block.id !== activeBlock.id)
 
             if (isColumn) {
                 newColumns[targetColumnId] = [
@@ -115,6 +115,7 @@ export default function CanvasClient({
             return newColumns
         })
 
+        await saveBlocks()
         setActiveId(null)
     }
 
@@ -163,15 +164,18 @@ export default function CanvasClient({
 
     const saveBlocks = useCallback(async () => {
         console.log('Saving blocks for canvas:', canvasId)
+        console.log('Columns:', columns)
         
         const blocks = columns.flatMap((column, columnIndex) => 
             column.map((block, orderIndex) => ({
-                columnIndex,
+                columnIndex: columnIndex,
                 orderIndex,
+                id: block.id,
                 type: block.type,
                 data: block.data
             }))
         )
+        console.log('Blocks:', blocks)
 
         try {
             const response = await fetch('/api/blocks', {

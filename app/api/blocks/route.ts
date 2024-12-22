@@ -8,42 +8,39 @@ export async function POST(request: Request) {
   const { blocks, canvasId } = body
 
   console.log('Received request:', { blocks, canvasId })
-  
-  if (!canvasId) {
-    return NextResponse.json({ error: 'Canvas ID is required' }, { status: 400 })
-  }
 
   try {
     for (const block of blocks) {
       console.log('Processing block:', block)
       
-      // Generate a UUID for new blocks
-      const blockId = crypto.randomUUID()
-      
+      // Check if block exists by ID instead of column and order
       const { data: existingBlock, error: queryError } = await supabase
         .from('gape_blocks')
         .select('*')
         .eq('canvas_id', canvasId)
-        .eq('column_number', block.columnIndex)
-        .eq('order_index', block.orderIndex)
+        .eq('id', block.id)
         .single()
 
       if (existingBlock) {
+        // Update existing block with new position
         const { error: updateError } = await supabase
           .from('gape_blocks')
           .update({
+            column_number: block.columnIndex,
+            order_index: block.orderIndex,
             type: block.type,
             data: block.data,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingBlock.id)
+          .eq('id', block.id)
           
         if (updateError) throw updateError
       } else {
+        // Insert new block
         const { error: insertError } = await supabase
           .from('gape_blocks')
           .insert({
-            id: blockId,  // Add generated UUID
+            id: block.id,
             canvas_id: canvasId,
             column_number: block.columnIndex,
             type: block.type,
