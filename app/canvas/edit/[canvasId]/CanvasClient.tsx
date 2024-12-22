@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
     DndContext,
     DragOverlay,
@@ -37,6 +37,7 @@ export default function CanvasClient({
     initialBlocks: Block[][]
     canvasId: string
 }) {
+    const [mounted, setMounted] = useState(false)
     const [columns, setColumns] = useState<Block[][]>(initialBlocks)
     const [activeId, setActiveId] = useState<string | null>(null)
     const [editingBlock, setEditingBlock] = useState<Block | null>(null)
@@ -50,6 +51,13 @@ export default function CanvasClient({
         useSensor(KeyboardSensor)
     )
 
+    const getInitialColumnCount = useCallback(() => {
+        const nonEmptyColumns = initialBlocks.filter(col => col.length > 0)
+        return Math.max(nonEmptyColumns.length || 1, 2) // Minimum 2 columns
+    }, [initialBlocks])
+
+    const [columnCount, setColumnCount] = useState(getInitialColumnCount())
+
     const handleColumnCountChange = (count: number) => {
         const allBlocks = columns.flat()
         const blocksPerColumn = Math.ceil(allBlocks.length / count)
@@ -62,6 +70,7 @@ export default function CanvasClient({
         }
 
         setColumns(newColumns)
+        setColumnCount(count)
     }
 
     const handleDragEnd = async (event: DragEndEvent) => {
@@ -198,14 +207,22 @@ export default function CanvasClient({
         }
     }, [columns, canvasId])
 
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) {
+        return null
+    }
+
     return (
-        <div className='flex flex-col  justify-center gap-2 py-2'>
+        <div className='flex flex-col justify-center gap-2 py-2'>
             <div className='flex flex-row gap-1 justify-center'>
             {[1, 2, 3, ].map((count) => (
                 <Button
                     key={count}
                     onClick={() => handleColumnCountChange(count)}
-                    variant={columns.length === count ? 'default' : 'outline'}
+                    variant={columnCount === count ? 'default' : 'outline'}
                 >
                     {count} Columns
                 </Button>
