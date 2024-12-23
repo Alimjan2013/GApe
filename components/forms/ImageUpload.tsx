@@ -1,95 +1,42 @@
 'use client'
-// import Image from "next/image";
+
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { X } from "lucide-react";
-import { createClient } from '@/utils/supabase/client';
 
 interface ImageUploadProps {
   value?: string;
-  onChange: (url: string) => void;
-  onRemove: () => void;
+  onChange: (value: { file?: File; url?: string } | string) => void;
 }
 
-export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const supabase = createClient();
-
-  const handleUpload = async (file: File) => {
-    const fileExt = file.name.split('.').pop() || '';
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `block_user_assets/${fileName}`;
-
-    const { data, error } = await supabase.storage
-      .from("GApe_public")
-      .upload(filePath, file);
-
-    if (error) {
-      console.error('Error:', error);
-      return;
-    }
-
-    const { data: publicData } = supabase.storage
-      .from('GApe_public')
-      .getPublicUrl(filePath);
-    
-    onChange(publicData.publicUrl);
-  };
+export function ImageUpload({ value, onChange }: ImageUploadProps) {
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(value);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    try {
-      setIsUploading(true);
-      await handleUpload(file);
-    } catch (error) {
-      console.error('Upload error:', error);
-    } finally {
-      setIsUploading(false);
-    }
+    const localPreview = URL.createObjectURL(file);
+    setPreviewUrl(localPreview);
+    onChange({ file, url: localPreview });
   };
 
-  const handleRemove = async (e: React.MouseEvent) => {
+  const handleRemove = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (value) {
-      try {
-        // Extract the full path after 'GApe_public/'
-        const fullPath = value.split('GApe_public/')[1];
-        if (fullPath) {
-          console.log('Attempting to delete:', fullPath);
-          
-          const { data, error } = await supabase.storage
-            .from('GApe_public')
-            .remove([fullPath]);
-
-          if (error) {
-            console.error('Error deleting file:', error);
-            return;
-          }
-          
-          console.log('File deleted successfully:', data);
-          onChange("");
-          onRemove();
-        } else {
-          console.error('Invalid file path:', value);
-        }
-      } catch (error) {
-        console.error('Delete operation failed:', error);
-      }
-    }
+    setPreviewUrl(undefined);
+    onChange(""); // Just clear the value
   };
 
   return (
     <div className="flex flex-col gap-4">
-      {value ? (
+      {previewUrl ? (
         <div className="relative w-40 h-40">
           <img
-            src={value}
+            src={previewUrl}
             alt="Upload"
-            className="object-cover rounded-md"
+            className="object-cover rounded-md w-full h-full"
           />
           <Button
             onClick={handleRemove}
@@ -106,7 +53,6 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            disabled={isUploading}
             className="hidden"
             id="image-upload"
           />
@@ -114,10 +60,9 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
             <Button
               variant="outline"
               className="cursor-pointer"
-              disabled={isUploading}
               asChild
             >
-              <span>{isUploading ? "Uploading..." : "Upload Image"}</span>
+              <span>Upload Image</span>
             </Button>
           </label>
         </div>
