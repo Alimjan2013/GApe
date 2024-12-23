@@ -2,7 +2,7 @@ import * as z from "zod"
 import { BlockType } from "@/types"
 
 export type FieldConfig = {
-    type: 'text' | 'email' | 'url' | 'textarea' | 'date' | 'number'
+    type: 'text' | 'email' | 'url' | 'textarea' | 'date' | 'number' | 'upload'
     label: string
     placeholder?: string
     validation?: {
@@ -43,7 +43,7 @@ const infoBlockConfig: Record<string, FieldConfig> = {
         label: 'Location'
     },
     imageUrl: {
-        type: 'url',
+        type: 'upload',
         label: 'Profile Image URL',
         validation: { required: true, url: true }
     },
@@ -101,7 +101,7 @@ const projectBlockConfig: Record<string, FieldConfig> = {
         label: 'Description'
     },
     image: {
-        type: 'url',
+        type: 'upload',
         label: 'Project Image URL',
         validation: { url: true }
     }
@@ -144,8 +144,8 @@ const educationBlockConfig: Record<string, FieldConfig> = {
         label: 'Description'
     },
     logoUrl: {
-        type: 'url',
-        label: 'Institution Logo URL'
+        type: 'upload',
+        label: 'Institution Logo '
     }
 }
 
@@ -202,8 +202,8 @@ const experienceBlockConfig: Record<string, FieldConfig> = {
         label: 'Description'
     },
     logoUrl: {
-        type: 'url',
-        label: 'Company Logo URL'
+        type: 'upload',
+        label: 'Company Logo'
     },
     type: {
         type: 'text',

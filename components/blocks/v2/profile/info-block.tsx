@@ -26,7 +26,7 @@ export function InfoBlock_L({
         >
             <div className='flex flex-row gap-2 pb-2 border-b'>
                 <img
-                    src={blockData.image}
+                    src={blockData.imageUrl}
                     className='w-28 h-36 rounded object-cover '
                     onError={(e) => {
                         e.currentTarget.src =
@@ -97,7 +97,7 @@ export function InfoBlock_M({
             <div className='self-stretch justify-start items-start gap-2 inline-flex'>
                 <img
                     className='w-24 h-32 rounded-xl  object-cover'
-                    src={blockData.image}
+                    src={blockData.imageUrl}
                     alt='Profile'
                     onError={(e) => {
                         e.currentTarget.src =

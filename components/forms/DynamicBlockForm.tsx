@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Block } from "@/types"
 import { blockFormConfigs, FieldConfig } from "./formSchemas"
 import { ProfileCardProps, ProjectCardProps, EducationCardProps, PublicationCardProps, ExperienceCardProps } from "@/types"
+import { ImageUpload } from "./ImageUpload"
 
 type BlockData = ProfileCardProps | ProjectCardProps | EducationCardProps | PublicationCardProps | ExperienceCardProps
 
@@ -26,6 +27,7 @@ interface DynamicBlockFormProps<T extends BlockData> {
 }
 
 export function DynamicBlockForm<T extends BlockData>({ block, onSave }: DynamicBlockFormProps<T>) {
+
     // Generate Zod schema dynamically based on block type
     const generateZodSchema = (config: Record<string, FieldConfig>) => {
         const schema: Record<string, any> = {}
@@ -70,6 +72,7 @@ export function DynamicBlockForm<T extends BlockData>({ block, onSave }: Dynamic
         })
     }
 
+    
     const renderField = (fieldName: string, config: FieldConfig) => {
         return (
             <FormField
@@ -80,7 +83,16 @@ export function DynamicBlockForm<T extends BlockData>({ block, onSave }: Dynamic
                     <FormItem>
                         <FormLabel>{config.label}</FormLabel>
                         <FormControl>
-                            {config.type === 'textarea' ? (
+                            {config.type === 'upload' ? (
+                                <ImageUpload
+                                    value={field.value as string}
+                                    onChange={field.onChange}
+                                    onRemove={() => {
+                                        field.onChange("");
+                                        form.trigger(fieldName as Path<T>);
+                                    }}
+                                />
+                            ) : config.type === 'textarea' ? (
                                 <Textarea {...field} placeholder={config.placeholder} />
                             ) : (
                                 <Input 
