@@ -8,7 +8,7 @@ import { ProjectBlock_L,ProjectBlock_M } from './blocks/v2/profile/ProjectCard'
 import { EduBlock_L,EduBlock_M } from './blocks/v2/profile/EducationCard'
 import { PublicationBlock_L,PublicationBlock_M } from './blocks/v2/profile/PublicationCard'
 import { WorkBlock_L,WorkBlock_M } from './blocks/v2/profile/ExperienceCard'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -57,7 +57,8 @@ const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onUpdate, 
   }
 
   const handleClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.delete-trigger')) {
+    if ((e.target as HTMLElement).closest('.delete-trigger') || 
+        (e.target as HTMLElement).closest('.edit-trigger')) {
       return;
     }
 
@@ -66,8 +67,6 @@ const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onUpdate, 
 
     if (location === 'sideBar') {
       onAdd?.()
-    } else if (location === 'canvas' && !transform) {
-      onClick?.()
     }
   }
 
@@ -115,40 +114,53 @@ const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onUpdate, 
       onClick={handleClick}
     >
       {location === 'canvas' && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="destructive"
-              size="icon"
-              className="delete-trigger absolute -top-2 -right-2 h-8 w-8 rounded-full z-10 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent onClick={e => e.stopPropagation()}>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the block.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={e => e.stopPropagation()}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
+        <div className="absolute -top-2 -right-2 flex flex-col gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="edit-trigger h-6 w-6 border border-customeBorder"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick?.();
+            }}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="icon"
+                className="delete-trigger h-6 w-6"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete?.(block.id);
                 }}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent onClick={e => e.stopPropagation()}>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the block.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={e => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete?.(block.id);
+                  }}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       )}
       {renderBlock()}
     </div>
