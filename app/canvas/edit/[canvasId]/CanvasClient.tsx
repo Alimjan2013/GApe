@@ -125,7 +125,7 @@ export default function CanvasClient({
             return newColumns
         })
 
-        await saveBlocks()
+        // await saveBlocks()
         setActiveId(null)
         
     }
