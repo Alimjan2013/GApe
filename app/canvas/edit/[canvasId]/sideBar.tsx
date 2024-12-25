@@ -59,6 +59,7 @@ function CanvasClientWrapper({
                     created_at: template.created_at || new Date(0).toISOString(),
                     updated_at: template.updated_at || new Date(0).toISOString(),
                 }))
+                .sort((a, b) => a.order_index - b.order_index) // Add this line to sort by order_index
 
                 setBlocks(newBlocks)
             } catch (err) {

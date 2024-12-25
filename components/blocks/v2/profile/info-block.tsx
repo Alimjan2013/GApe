@@ -28,6 +28,7 @@ export function InfoBlock_L({
                 <img
                     src={blockData.imageUrl}
                     className='w-28 h-36 rounded object-cover '
+                    alt='Profile'
                     onError={(e) => {
                         e.currentTarget.src =
                             'https://ogbwfcmgzyaldlnrwazo.supabase.co/storage/v1/object/public/GApe_public/block_user_assets/0.8377113559874916.png'
@@ -96,7 +97,7 @@ export function InfoBlock_M({
         >
             <div className='self-stretch justify-start items-start gap-2 inline-flex'>
                 <img
-                    className='w-24 h-32 rounded-xl  object-cover'
+                    className='w-24 h-[120px] rounded-xl  object-cover'
                     src={blockData.imageUrl}
                     alt='Profile'
                     onError={(e) => {

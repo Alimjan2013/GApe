@@ -1,6 +1,12 @@
 'use client'
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { 
+    Sheet, 
+    SheetContent, 
+    SheetHeader, 
+    SheetTitle,
+    SheetDescription 
+} from "@/components/ui/sheet"
 import { Block, BlockType } from "@/types"
 import { DynamicBlockForm } from "./forms/DynamicBlockForm"
 
@@ -43,6 +49,9 @@ export function EditBlockSheet({ block, isOpen, onClose, onSave }: EditBlockShee
             <SheetContent side="right" className="w-[400px] sm:w-[540px]">
                 <SheetHeader>
                     <SheetTitle>{getFormTitle()}</SheetTitle>
+                    <SheetDescription>
+                        Make changes to your block here. Click save when you&rsquo;re done.
+                    </SheetDescription>
                 </SheetHeader>
                 <DynamicBlockForm block={block} onSave={onSave} />
             </SheetContent>
