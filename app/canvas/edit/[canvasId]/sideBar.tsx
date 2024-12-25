@@ -76,30 +76,66 @@ function CanvasClientWrapper({
         onAddBlock(block)
     }
 
-    if (isLoading) {
-        return <Loading />
-    }
+    const renderBlocks = () => {
+        if (size === 'drawer') {
+            // Split blocks into three columns
+            const columnCount = 3;
+            const columns: Block[][] = Array.from({ length: columnCount }, () => []);
+            
+            blocks.forEach((block, index) => {
+                const columnIndex = index % columnCount;
+                columns[columnIndex].push(block);
+            });
 
-    if (error) {
-        return <div>Error loading canvas: {error}</div>
-    }
+            return (
+                <div className="flex  w-full max-h-[60vh] overflow-y-auto justify-center">
+                    {columns.map((columnBlocks, columnIndex) => (
+                        <div key={columnIndex} className="flex-1 flex flex-col gap-2 items-center">
+                            {columnBlocks.map((block) => (
+                                <div 
+                                    key={block.id}
+                                    onClick={() => handleBlockClick(block)}
+                                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                                >
+                                    <BlockWrapper 
+                                        block={block} 
+                                        location='sideBar'
+                                        onAdd={() => onAddBlock(block)}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        // Sidebar mode - single column
+        return (
+            <div className="flex flex-col items-center gap-2">
+                {blocks.map((block) => (
+                    <div 
+                        key={block.id}
+                        onClick={() => handleBlockClick(block)}
+                        className="cursor-pointer hover:opacity-80 transition-opacity"
+                    >
+                        <BlockWrapper 
+                            block={block} 
+                            location='sideBar'
+                            onAdd={() => onAddBlock(block)}
+                        />
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    if (isLoading) return <Loading />
+    if (error) return <div>Error loading canvas: {error}</div>
 
     return (
-       
-        <div className={`flex gap-2 p-2 bg-customeBG2 rounded-lg overflow-y-scroll ${size === 'drawer' ? 'flex-row flex-wrap w-full max-h-[60vh] justify-center' : 'flex-col items-center'}`}>
-            {blocks.map((block) => (
-                <div 
-                    key={block.id}
-                    onClick={() => handleBlockClick(block)}
-                    className="cursor-pointer hover:opacity-80 transition-opacity"
-                >
-                    <BlockWrapper 
-                        block={block} 
-                        location='sideBar'
-                        onAdd={() => onAddBlock(block)}
-                    />
-                </div>
-            ))}
+        <div className="p-2 bg-customeBG2 rounded-lg">
+            {renderBlocks()}
         </div>
-    )
+    );
 }

@@ -150,6 +150,7 @@ export default function CanvasClient({
             return newColumns
         })
         handleColumnChange(columns)
+        toast.success('Block added to canvas')
     }
 
     const handleSaveBlock = (updatedBlock: Block) => {
@@ -311,7 +312,10 @@ export default function CanvasClient({
                                 </DrawerTrigger>
                                 <DrawerContent>
                                     <DrawerHeader>
-                                        <DrawerTitle>pick a block</DrawerTitle>
+                                        <DrawerTitle>Pick a block</DrawerTitle>
+                                        <DrawerDescription>
+                                            Select a block to add to your canvas
+                                        </DrawerDescription>
                                     </DrawerHeader>
                                     <SideBar
                                         size='drawer'
