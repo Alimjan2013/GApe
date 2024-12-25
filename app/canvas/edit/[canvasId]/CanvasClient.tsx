@@ -59,7 +59,6 @@ export default function CanvasClient({
         return Math.max(nonEmptyColumns.length || 1, 2) // Minimum 2 columns
     }, [initialBlocks])
 
-    const columnCount = useAtomValue(columnCountAtom)
 
     const setHasUnsavedChanges = useSetAtom(hasUnsavedChangesAtom)
 
@@ -234,9 +233,14 @@ export default function CanvasClient({
 
     const [_, setSaveFunction] = useAtom(saveFunctionAtom)
 
+    const columnCount = useAtomValue(columnCountAtom)
+
+    const setColumnCount = useSetAtom(columnCountAtom)
+
     useEffect(() => {
         setMounted(true)
-    }, [])
+        setColumnCount(initialBlocks.length)
+    }, [initialBlocks.length, setColumnCount])
 
     useEffect(() => {
         const saveFn = async () => {
@@ -296,6 +300,7 @@ export default function CanvasClient({
                                     activeId={activeId}
                                     onBlockClick={setEditingBlock}
                                     onDeleteBlock={handleDeleteBlock}
+                                    isEditing={true}
                                 />
                             ))}
                         </div>

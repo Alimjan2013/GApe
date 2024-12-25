@@ -2,7 +2,7 @@
 'use client'
 import { Save, Printer, Laptop, Touchpad, Smartphone } from 'lucide-react'
 import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import Share from '@/components/ui/sharing'
@@ -20,18 +20,38 @@ function ToolBar() {
     const saveFunction = useAtomValue(saveFunctionAtom)
     const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom)
     const [columnCount, setColumnCount] = useAtom(columnCountAtom)
-
-    console.log('Save function in HeaderMenu:', !!saveFunction)
-
-    const handleSave = async () => {
-        if (saveFunction) {
-            await saveFunction()
-        } else {
-            toast.error('Save function not available')
+    
+    // Initialize currentDevice from localStorage or based on columnCount
+    const [currentDevice, setCurrentDevice] = useState(() => {
+        // Try to get from localStorage first
+        const savedDevice = localStorage.getItem('currentDevice')
+        if (savedDevice) {
+            // Update column count to match saved device
+            setTimeout(() => {
+                switch (savedDevice) {
+                    case 'phone': setColumnCount(1); break;
+                    case 'pad': setColumnCount(2); break;
+                    case 'pc': setColumnCount(3); break;
+                }
+            }, 0)
+            return savedDevice
         }
-    }
+        
+        // Fall back to columnCount-based initialization
+        switch (columnCount) {
+            case 1: return 'phone'
+            case 2: return 'pad'
+            case 3: return 'pc'
+            default: return 'pc'
+        }
+    })
 
+    // Sync device changes to localStorage and update column count
     const handleDeviceChange = (value: string) => {
+        console.log('Device change requested:', value)
+        setCurrentDevice(value)
+        localStorage.setItem('currentDevice', value)
+        
         switch (value) {
             case 'pc':
                 setColumnCount(3)
@@ -42,6 +62,47 @@ function ToolBar() {
             case 'phone':
                 setColumnCount(1)
                 break
+        }
+    }
+
+    // Sync column count changes to device selection
+    useEffect(() => {
+        console.log('Column count changed to:', columnCount)
+        const newDevice = columnCount === 1 ? 'phone' 
+                       : columnCount === 2 ? 'pad'
+                       : 'pc'
+        
+        if (newDevice !== currentDevice) {
+            setCurrentDevice(newDevice)
+            localStorage.setItem('currentDevice', newDevice)
+        }
+    }, [columnCount, currentDevice])
+
+    // Add this debug log
+    useEffect(() => {
+        console.log('Current device:', currentDevice)
+    }, [currentDevice])
+
+    console.log('Save function in HeaderMenu:', !!saveFunction)
+
+    const getDefaultDevice = (columns: number) => {
+        switch (columns) {
+            case 1:
+                return 'phone'
+            case 2:
+                return 'pad'
+            case 3:
+                return 'pc'
+            default:
+                return 'error'
+        }
+    }
+
+    const handleSave = async () => {
+        if (saveFunction) {
+            await saveFunction()
+        } else {
+            toast.error('Save function not available')
         }
     }
 
@@ -59,7 +120,7 @@ function ToolBar() {
                     />
                 </Button>
             </div>
-            <Tabs defaultValue="pc" onValueChange={handleDeviceChange}>
+            <Tabs value={currentDevice} onValueChange={handleDeviceChange}>
                 <TabsList className='grid w-full grid-cols-3'>
                     <TabsTrigger value='pc'>
                         <Laptop className='h-4 w-4' />

@@ -48,10 +48,8 @@ export default async function CanvasPage(props: PageProps) {
   // Filter out any empty columns and ensure we have at least 2 columns
   const initialBlocks = transformedBlocks.filter(column => column?.length > 0)
   if (initialBlocks.length === 0) {
-    initialBlocks.push([], []) // Initialize with two empty columns
-  } else if (initialBlocks.length === 1) {
-    initialBlocks.push([]) // Add a second empty column
-  }
+    initialBlocks.push([]) // Initialize with two empty columns
+} 
 
   return (
     <div className="container mx-auto">
