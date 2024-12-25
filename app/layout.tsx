@@ -6,6 +6,7 @@ import './globals.css'
 import UserInfo from '@/components/ui/userInfo'
 import HeaderMenu from '@/components/ui/headerMenu'
 import { Toaster } from '@/components/ui/sonner'
+import UnsavedChangesHandler from '@/components/UnsavedChangesHandler'
 
 const geistSans = localFont({
     src: './fonts/GeistVF.woff',
@@ -40,7 +41,7 @@ export default function RootLayout({
                     </HeaderMenu>
                     <div className='h-full'>{children}</div>
                 </div>
-
+                <UnsavedChangesHandler />
                 <Toaster closeButton />
             </body>
         </html>

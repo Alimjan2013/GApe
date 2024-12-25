@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
     DndContext,
     DragOverlay,
@@ -30,6 +30,8 @@ import {
 } from '@/components/ui/drawer'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAtom, useSetAtom } from 'jotai'
+import { saveFunctionAtom, hasUnsavedChangesAtom } from '@/store/canvasAtoms'
 
 export default function CanvasClient({
     initialBlocks,
@@ -59,20 +61,12 @@ export default function CanvasClient({
 
     const [columnCount, setColumnCount] = useState(getInitialColumnCount())
 
-    const handleColumnCountChange = (count: number) => {
-        const allBlocks = columns.flat()
-        const blocksPerColumn = Math.ceil(allBlocks.length / count)
-        const newColumns: Block[][] = []
+    const setHasUnsavedChanges = useSetAtom(hasUnsavedChangesAtom)
 
-        for (let i = 0; i < count; i++) {
-            newColumns.push(
-                allBlocks.slice(i * blocksPerColumn, (i + 1) * blocksPerColumn)
-            )
-        }
-
+    const handleColumnChange = useCallback((newColumns: Block[][]) => {
         setColumns(newColumns)
-        setColumnCount(count)
-    }
+        setHasUnsavedChanges(true)
+    }, [setHasUnsavedChanges])
 
     const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event
@@ -99,35 +93,30 @@ export default function CanvasClient({
 
         if (sourceColumnIndex === -1) return
 
-        setColumns((currentColumns) => {
-            const newColumns = [...currentColumns]
-            newColumns[sourceColumnIndex] = newColumns[sourceColumnIndex]
-                .filter((block) => block.id !== activeBlock.id)
+        const newColumns = [...columns]
+        newColumns[sourceColumnIndex] = newColumns[sourceColumnIndex]
+            .filter((block) => block.id !== activeBlock.id)
 
-            if (isColumn) {
-                newColumns[targetColumnId] = [
-                    ...newColumns[targetColumnId],
-                    activeBlock,
-                ]
-            } else {
-                const overBlockId = over.id as string
-                const targetColumn = newColumns[targetColumnId]
-                const overIndex = targetColumn.findIndex(
-                    (block) => block.id === overBlockId
-                )
-                newColumns[targetColumnId] = [
-                    ...targetColumn.slice(0, overIndex),
-                    activeBlock,
-                    ...targetColumn.slice(overIndex),
-                ]
-            }
+        if (isColumn) {
+            newColumns[targetColumnId] = [
+                ...newColumns[targetColumnId],
+                activeBlock,
+            ]
+        } else {
+            const overBlockId = over.id as string
+            const targetColumn = newColumns[targetColumnId]
+            const overIndex = targetColumn.findIndex(
+                (block) => block.id === overBlockId
+            )
+            newColumns[targetColumnId] = [
+                ...targetColumn.slice(0, overIndex),
+                activeBlock,
+                ...targetColumn.slice(overIndex),
+            ]
+        }
 
-            return newColumns
-        })
-
-        // await saveBlocks()
+        handleColumnChange(newColumns)
         setActiveId(null)
-        
     }
 
     const getBlockColumn = (blockId: string): string => {
@@ -158,6 +147,7 @@ export default function CanvasClient({
             ]
             return newColumns
         })
+        handleColumnChange(columns)
     }
 
     const handleSaveBlock = (updatedBlock: Block) => {
@@ -191,16 +181,22 @@ export default function CanvasClient({
 
             return finalColumns
         })
-      
+        handleColumnChange(columns)
     }
 
     const showSidebarAsDrawer = columns.length > 2
 
+    const columnsRef = useRef<Block[][]>([])
+
+    useEffect(() => {
+        columnsRef.current = columns
+    }, [columns])
+
     const saveBlocks = useCallback(async () => {
         console.log('Saving blocks for canvas:', canvasId)
 
-        const currentBlockIds = new Set(columns.flat().map(block => block.id))
-        const blocks = columns.flatMap((column, columnIndex) => 
+        const currentBlockIds = new Set(columnsRef.current.flat().map(block => block.id))
+        const blocks = columnsRef.current.flatMap((column, columnIndex) => 
             column.map((block, orderIndex) => ({
                 columnIndex: columnIndex,
                 orderIndex,
@@ -231,15 +227,44 @@ export default function CanvasClient({
             toast.success(
                 `Canvas saved successfully${deletedCount ? ` (${deletedCount} blocks cleaned up)` : ''}`
             )
+            setHasUnsavedChanges(false)
         } catch (error) {
             console.error('Error saving blocks:', error)
             toast.error('Failed to save canvas')
         }
-    }, [columns, canvasId])
+    }, [canvasId, setHasUnsavedChanges])
+
+    const [_, setSaveFunction] = useAtom(saveFunctionAtom)
 
     useEffect(() => {
         setMounted(true)
     }, [])
+
+    useEffect(() => {
+        const saveFn = async () => {
+            await saveBlocks()
+        }
+        setSaveFunction(() => saveFn)
+        
+        return () => {
+            setSaveFunction(null)
+        }
+    }, [saveBlocks, setSaveFunction])
+
+    const handleColumnCountChange = (count: number) => {
+        const allBlocks = columns.flat()
+        const blocksPerColumn = Math.ceil(allBlocks.length / count)
+        const newColumns: Block[][] = []
+
+        for (let i = 0; i < count; i++) {
+            newColumns.push(
+                allBlocks.slice(i * blocksPerColumn, (i + 1) * blocksPerColumn)
+            )
+        }
+
+        handleColumnChange(newColumns)
+        setColumnCount(count)
+    }
 
     if (!mounted) {
         return null
@@ -257,7 +282,6 @@ export default function CanvasClient({
                     {count} Columns
                 </Button>
             ))}
-            <button onClick={saveBlocks}>save blocks</button>
             </div>
             
              <div className='flex flex-row gap-1 justify-center'>

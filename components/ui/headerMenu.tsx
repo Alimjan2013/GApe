@@ -7,20 +7,36 @@ import { Button } from '@/components/ui/button'
 import Share from '@/components/ui/sharing'
 import { toast } from 'sonner'
 import { PreviewButton } from './previewButton'
+import { useAtomValue } from 'jotai'
+import { saveFunctionAtom, hasUnsavedChangesAtom } from '@/store/canvasAtoms'
 
 interface HeaderMenuProps {
     children?: React.ReactNode
 }
 function ToolBar() {
+    const saveFunction = useAtomValue(saveFunctionAtom)
+    const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom)
+    
+    console.log('Save function in HeaderMenu:', !!saveFunction)
+
+    const handleSave = async () => {
+        if (saveFunction) {
+            await saveFunction()
+        } else {
+            toast.error('Save function not available')
+        }
+    }
+
     return (
         <div className='flex justify-between w-full items-center'>
             <div className='flex flex-row gap-1'>
                 <Button
-                    onClick={() => toast.success('Saved successfully!')}
-                    variant={'secondary'}
+                    onClick={handleSave}
+                    variant={hasUnsavedChanges ? 'default' : 'secondary'}
                     size='icon'
+                    disabled={!saveFunction}
                 >
-                    <Save className='h-4 w-4' />
+                    <Save className={`h-4 w-4 ${hasUnsavedChanges ? 'text-primary' : ''}`} />
                 </Button>
             </div>
             <div className='flex justify-between gap-2 items-center'>
