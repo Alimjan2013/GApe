@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import {
     DndContext,
     DragOverlay,
@@ -14,7 +14,7 @@ import {
 } from '@dnd-kit/core'
 import Column from '@/components/Column'
 import BlockWrapper from '@/components/BlockWrapper'
-import { Block } from '@/types'
+import { Block, BlockTemplate } from '@/types'
 import SideBar from './sideBar'
 import { EditBlockSheet } from '@/components/EditBlockSheet'
 import { Button } from '@/components/ui/button'
@@ -31,14 +31,20 @@ import {
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAtom, useSetAtom, useAtomValue } from 'jotai'
-import { saveFunctionAtom, hasUnsavedChangesAtom, columnCountAtom } from '@/store/canvasAtoms'
+import {
+    saveFunctionAtom,
+    hasUnsavedChangesAtom,
+    columnCountAtom,
+} from '@/store/canvasAtoms'
 
 export default function CanvasClient({
     initialBlocks,
     canvasId,
+    blockTemplates,
 }: {
     initialBlocks: Block[][]
     canvasId: string
+    blockTemplates: BlockTemplate[]
 }) {
     const [mounted, setMounted] = useState(false)
     const [columns, setColumns] = useState<Block[][]>(initialBlocks)
@@ -55,19 +61,21 @@ export default function CanvasClient({
     )
 
     const getInitialColumnCount = useCallback(() => {
-        const nonEmptyColumns = initialBlocks.filter(col => col.length > 0)
+        const nonEmptyColumns = initialBlocks.filter((col) => col.length > 0)
         return Math.max(nonEmptyColumns.length || 1, 2) // Minimum 2 columns
     }, [initialBlocks])
 
-
     const setHasUnsavedChanges = useSetAtom(hasUnsavedChangesAtom)
 
-    const handleColumnChange = useCallback((newColumns: Block[][]) => {
-        if (JSON.stringify(newColumns) !== JSON.stringify(columns)) {
-            setColumns(newColumns)
-            setHasUnsavedChanges(true)
-        }
-    }, [setHasUnsavedChanges, columns])
+    const handleColumnChange = useCallback(
+        (newColumns: Block[][]) => {
+            if (JSON.stringify(newColumns) !== JSON.stringify(columns)) {
+                setColumns(newColumns)
+                setHasUnsavedChanges(true)
+            }
+        },
+        [setHasUnsavedChanges, columns]
+    )
 
     const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event
@@ -83,7 +91,8 @@ export default function CanvasClient({
             return
         }
 
-        const isColumn = typeof over.id === 'string' && over.id.startsWith('column-')
+        const isColumn =
+            typeof over.id === 'string' && over.id.startsWith('column-')
         const targetColumnId = isColumn
             ? Number(String(over.id).split('-')[1])
             : Number(String(over.data?.current?.columnId).split('-')[1])
@@ -95,8 +104,9 @@ export default function CanvasClient({
         if (sourceColumnIndex === -1) return
 
         const newColumns = [...columns]
-        newColumns[sourceColumnIndex] = newColumns[sourceColumnIndex]
-            .filter((block) => block.id !== activeBlock.id)
+        newColumns[sourceColumnIndex] = newColumns[sourceColumnIndex].filter(
+            (block) => block.id !== activeBlock.id
+        )
 
         if (isColumn) {
             newColumns[targetColumnId] = [
@@ -146,9 +156,9 @@ export default function CanvasClient({
                 ...newColumns[targetColumnIndex],
                 newBlock,
             ]
+            handleColumnChange(newColumns)
             return newColumns
         })
-        handleColumnChange(columns)
         toast.success('Block added to canvas')
     }
 
@@ -164,21 +174,27 @@ export default function CanvasClient({
     }
 
     const handleDeleteBlock = async (blockId: string) => {
-        setColumns(currentColumns => {
+        setColumns((currentColumns) => {
             // First filter out the block from all columns
-            const columnsWithoutBlock = currentColumns.map(column =>
-                column.filter(block => block.id !== blockId)
+            const columnsWithoutBlock = currentColumns.map((column) =>
+                column.filter((block) => block.id !== blockId)
             )
 
             // Then remove any empty columns, but keep at least 2 columns
-            const nonEmptyColumns = columnsWithoutBlock.filter(column => column.length > 0)
-            const finalColumns = nonEmptyColumns.length >= 2 
-                ? nonEmptyColumns 
-                : [...nonEmptyColumns, ...Array(2 - nonEmptyColumns.length).fill([])]
+            const nonEmptyColumns = columnsWithoutBlock.filter(
+                (column) => column.length > 0
+            )
+            const finalColumns =
+                nonEmptyColumns.length >= 2
+                    ? nonEmptyColumns
+                    : [
+                          ...nonEmptyColumns,
+                          ...Array(2 - nonEmptyColumns.length).fill([]),
+                      ]
 
+            handleColumnChange(finalColumns)
             return finalColumns
         })
-        handleColumnChange(columns)
     }
 
     const showSidebarAsDrawer = columns.length > 2
@@ -192,14 +208,16 @@ export default function CanvasClient({
     const saveBlocks = useCallback(async () => {
         console.log('Saving blocks for canvas:', canvasId)
 
-        const currentBlockIds = new Set(columnsRef.current.flat().map(block => block.id))
-        const blocks = columnsRef.current.flatMap((column, columnIndex) => 
+        const currentBlockIds = new Set(
+            columnsRef.current.flat().map((block) => block.id)
+        )
+        const blocks = columnsRef.current.flatMap((column, columnIndex) =>
             column.map((block, orderIndex) => ({
                 columnIndex: columnIndex,
                 orderIndex,
                 id: block.id,
                 type: block.type,
-                data: block.data
+                data: block.data,
             }))
         )
         try {
@@ -208,10 +226,10 @@ export default function CanvasClient({
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     blocks,
                     canvasId,
-                    currentBlockIds: Array.from(currentBlockIds)
+                    currentBlockIds: Array.from(currentBlockIds),
                 }),
             })
 
@@ -247,34 +265,45 @@ export default function CanvasClient({
             await saveBlocks()
         }
         setSaveFunction(() => saveFn)
-        
+
         return () => {
             setSaveFunction(null)
         }
     }, [saveBlocks, setSaveFunction])
 
     // First, memoize the column redistribution function
-    const redistributeColumns = useCallback((count: number) => {
-        const allBlocks = columns.flat()
-        const blocksPerColumn = Math.ceil(allBlocks.length / count)
-        const newColumns: Block[][] = []
+    const redistributeColumns = useCallback(
+        (count: number) => {
+            const allBlocks = columns.flat()
+            const blocksPerColumn = Math.ceil(allBlocks.length / count)
+            const newColumns: Block[][] = []
 
-        for (let i = 0; i < count; i++) {
-            newColumns.push(
-                allBlocks.slice(i * blocksPerColumn, (i + 1) * blocksPerColumn)
-            )
-        }
+            for (let i = 0; i < count; i++) {
+                newColumns.push(
+                    allBlocks.slice(
+                        i * blocksPerColumn,
+                        (i + 1) * blocksPerColumn
+                    )
+                )
+            }
 
-        if (newColumns.length !== columns.length) {
-            handleColumnChange(newColumns)
-        }
-    }, [columns, handleColumnChange])
+            if (newColumns.length !== columns.length) {
+                handleColumnChange(newColumns)
+            }
+        },
+        [columns, handleColumnChange]
+    )
 
     // Then use it in the effect
     useEffect(() => {
         if (!mounted) return
         redistributeColumns(columnCount)
     }, [columnCount, mounted, redistributeColumns])
+
+    // Inside the component, memoize the handleAddBlock callback
+    const memoizedHandleAddBlock = useCallback((templateBlock: Block) => {
+        handleAddBlock(templateBlock)
+    }, []) // Empty dependency array since handleAddBlock doesn't depend on any props/state
 
     if (!mounted) {
         return null
@@ -285,7 +314,9 @@ export default function CanvasClient({
             <div className='flex flex-row gap-1 justify-center'>
                 <DndContext
                     sensors={sensors}
-                    onDragStart={({ active }) => setActiveId(active.id.toString())}
+                    onDragStart={({ active }) =>
+                        setActiveId(active.id.toString())
+                    }
                     onDragEnd={handleDragEnd}
                     onDragCancel={() => setActiveId(null)}
                 >
@@ -304,31 +335,6 @@ export default function CanvasClient({
                                 />
                             ))}
                         </div>
-
-                        {showSidebarAsDrawer && (
-                            <Drawer>
-                                <DrawerTrigger asChild>
-                                    <Button
-                                        className='fixed bottom-4 right-4 h-14 w-14 rounded-full'
-                                        size='icon'
-                                    >
-                                        <Plus className='h-6 w-6' />
-                                    </Button>
-                                </DrawerTrigger>
-                                <DrawerContent>
-                                    <DrawerHeader>
-                                        <DrawerTitle>Pick a block</DrawerTitle>
-                                        <DrawerDescription>
-                                            Select a block to add to your canvas
-                                        </DrawerDescription>
-                                    </DrawerHeader>
-                                    <SideBar
-                                        size='drawer'
-                                        onAddBlock={handleAddBlock}
-                                    />
-                                </DrawerContent>
-                            </Drawer>
-                        )}
                     </main>
 
                     <DragOverlay>
@@ -348,7 +354,37 @@ export default function CanvasClient({
                 </DndContext>
 
                 {!showSidebarAsDrawer && (
-                    <SideBar size='sideBar' onAddBlock={handleAddBlock} />
+                    <SideBar
+                        size='sideBar'
+                        onAddBlock={memoizedHandleAddBlock}
+                        templates={blockTemplates}
+                    />
+                )}
+
+                {showSidebarAsDrawer && (
+                    <Drawer>
+                        <DrawerTrigger asChild>
+                            <Button
+                                className='fixed bottom-4 right-4 h-14 w-14 rounded-full'
+                                size='icon'
+                            >
+                                <Plus className='h-6 w-6' />
+                            </Button>
+                        </DrawerTrigger>
+                        <DrawerContent>
+                            <DrawerHeader>
+                                <DrawerTitle>Pick a block</DrawerTitle>
+                                <DrawerDescription>
+                                    Select a block to add to your canvas
+                                </DrawerDescription>
+                            </DrawerHeader>
+                            <SideBar
+                                size='drawer'
+                                onAddBlock={memoizedHandleAddBlock}
+                                templates={blockTemplates}
+                            />
+                        </DrawerContent>
+                    </Drawer>
                 )}
 
                 <EditBlockSheet

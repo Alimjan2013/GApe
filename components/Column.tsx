@@ -13,57 +13,58 @@ interface ColumnProps {
   isEditing: boolean
 }
 
-export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlock ,isEditing}: ColumnProps) {
-  // console.log('Column rendering with blocks:', blocks.length)
-  
-  const handleBlockClick = (block: Block) => {
-    console.log('Column handleBlockClick:', block.id)
-    onBlockClick?.(block)
-  }
+export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlock, isEditing }: ColumnProps) {
+  const { setNodeRef } = useDroppable({ 
+    id: isEditing ? id : `template-${id}`,
+    data: {
+      type: 'column',
+      columnId: id
+    },
+    disabled: !isEditing
+  })
 
   const handleBlockUpdate = (blockIndex: number, newData: any) => {
-    // Update the block data in your state management system
-    // This depends on how you're managing state in your application
-    // For example, if using useState:
     const newBlocks = [...blocks]
     newBlocks[blockIndex] = {
       ...newBlocks[blockIndex],
       data: newData
     }
-    // Call your update function here
   }
 
-  const { setNodeRef } = useDroppable({ 
-    id,
-    data: {
-      type: 'column',
-      columnId: id
-    }
-  })
+  const content = (
+    <div 
+      ref={isEditing ? setNodeRef : undefined} 
+      className={`flex flex-col gap-2 p-1 ${isEditing ? 'bg-gray-100 rounded-lg' : ''}`}
+    >
+      {blocks.map((block, blockIndex) => (
+        <BlockWrapper 
+          key={block.id} 
+          block={block} 
+          isActive={isEditing ? block.id === activeId : false}
+          columnId={id}
+          onClick={() => onBlockClick?.(block)}
+          location={isEditing ? 'canvas' : 'sideBar'}
+          onUpdate={(newData) => handleBlockUpdate(blockIndex, newData)}
+          onDelete={onDeleteBlock}
+        />
+      ))}
+      {isEditing && blocks.length === 0 && (
+        <div className="h-full min-h-[200px] min-w-[392px] flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded-lg">
+          Drop items here
+        </div>
+      )}
+    </div>
+  )
 
   return (
     <div className="flex-1">
-      <SortableContext items={blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}>
-        <div ref={setNodeRef} className="flex flex-col gap-2 p-1 bg-gray-100 rounded-lg">
-          {blocks.map((block, blockIndex) => (
-            <BlockWrapper 
-              key={block.id} 
-              block={block} 
-              isActive={block.id === activeId}
-              columnId={id}
-              onClick={() => handleBlockClick(block)}
-              location={isEditing ? 'canvas' : 'sideBar'}
-              onUpdate={(newData) => handleBlockUpdate(blockIndex, newData)}
-              onDelete={onDeleteBlock}
-            />
-          ))}
-          {blocks.length === 0 && (
-            <div className="h-full min-h-[200px] min-w-[392px] flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded-lg">
-              Drop items here
-            </div>
-          )}
-        </div>
-      </SortableContext>
+      {isEditing ? (
+        <SortableContext items={blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}>
+          {content}
+        </SortableContext>
+      ) : (
+        content
+      )}
     </div>
   )
 }

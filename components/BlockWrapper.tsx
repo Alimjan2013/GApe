@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo, useCallback } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Block, BlockType } from '@/types'
@@ -33,7 +33,16 @@ interface BlockWrapperProps {
   onDelete?: (blockId: string) => void
 }
 
-const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onUpdate, onAdd, onDelete}: BlockWrapperProps) => {
+const BlockWrapper = memo(function BlockWrapper({ 
+  block, 
+  isActive, 
+  columnId, 
+  location, 
+  onClick, 
+  onUpdate, 
+  onAdd, 
+  onDelete
+}: BlockWrapperProps) {
   const {
     attributes,
     listeners,
@@ -47,28 +56,26 @@ const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onUpdate, 
       block,
       columnId,
       location
+    },
+    disabled: location !== 'canvas'
+  });
+
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.delete-trigger') || 
+        (e.target as HTMLElement).closest('.edit-trigger')) {
+      return;
     }
-  })
+    e.stopPropagation();
+    if (location === 'sideBar') {
+      onAdd?.();
+    }
+  }, [location, onAdd]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isActive ? 0.5 : 1,
-  }
-
-  const handleClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.delete-trigger') || 
-        (e.target as HTMLElement).closest('.edit-trigger')) {
-      return;
-    }
-
-    console.log('BlockWrapper click', { transform, location, blockId: block.id })
-    e.stopPropagation()
-
-    if (location === 'sideBar') {
-      onAdd?.()
-    }
-  }
+  };
 
   const renderBlock = () => {
     switch (block.type) {
@@ -165,7 +172,7 @@ const BlockWrapper = ({ block, isActive, columnId ,location, onClick, onUpdate, 
       {renderBlock()}
     </div>
   )
-}
+})
 
 export default BlockWrapper
 

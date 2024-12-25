@@ -14,20 +14,25 @@ export default async function CanvasPage(props: PageProps) {
   const { canvasId } = params
   const supabase = await createClient()
 
-  // Fetch initial blocks for this canvas
-  const { data: blocks, error } = await supabase
-    .from('gape_blocks')
-    .select('*')
-    .eq('canvas_id', canvasId)
-    .eq('is_active', true)
-    .order('order_index', { ascending: true })
+  // Fetch both blocks and templates in parallel
+  const [blocksResponse, templatesResponse] = await Promise.all([
+    supabase
+      .from('gape_blocks')
+      .select('*')
+      .eq('canvas_id', canvasId)
+      .eq('is_active', true)
+      .order('order_index', { ascending: true }),
+    supabase
+      .from('block_templates')
+      .select('*')
+  ])
 
-  if (error) {
-    console.error('Error fetching blocks:', error)
+  if (blocksResponse.error) {
+    console.error('Error fetching blocks:', blocksResponse.error)
   }
 
   // Transform blocks into column-based structure
-  const transformedBlocks = blocks?.reduce<Block[][]>((acc, block) => {
+  const transformedBlocks = blocksResponse.data?.reduce<Block[][]>((acc, block) => {
     // Ensure the column array exists
     if (!acc[block.column_number]) {
       acc[block.column_number] = []
@@ -56,6 +61,7 @@ export default async function CanvasPage(props: PageProps) {
       <CanvasClient 
         initialBlocks={initialBlocks}
         canvasId={canvasId}
+        blockTemplates={templatesResponse.data || []}
       />
       
     </div>
