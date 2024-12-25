@@ -30,8 +30,8 @@ import {
 } from '@/components/ui/drawer'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
-import { useAtom, useSetAtom } from 'jotai'
-import { saveFunctionAtom, hasUnsavedChangesAtom } from '@/store/canvasAtoms'
+import { useAtom, useSetAtom, useAtomValue } from 'jotai'
+import { saveFunctionAtom, hasUnsavedChangesAtom, columnCountAtom } from '@/store/canvasAtoms'
 
 export default function CanvasClient({
     initialBlocks,
@@ -59,14 +59,16 @@ export default function CanvasClient({
         return Math.max(nonEmptyColumns.length || 1, 2) // Minimum 2 columns
     }, [initialBlocks])
 
-    const [columnCount, setColumnCount] = useState(getInitialColumnCount())
+    const columnCount = useAtomValue(columnCountAtom)
 
     const setHasUnsavedChanges = useSetAtom(hasUnsavedChangesAtom)
 
     const handleColumnChange = useCallback((newColumns: Block[][]) => {
-        setColumns(newColumns)
-        setHasUnsavedChanges(true)
-    }, [setHasUnsavedChanges])
+        if (JSON.stringify(newColumns) !== JSON.stringify(columns)) {
+            setColumns(newColumns)
+            setHasUnsavedChanges(true)
+        }
+    }, [setHasUnsavedChanges, columns])
 
     const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event
@@ -174,11 +176,6 @@ export default function CanvasClient({
                 ? nonEmptyColumns 
                 : [...nonEmptyColumns, ...Array(2 - nonEmptyColumns.length).fill([])]
 
-            // Update column count if needed
-            if (finalColumns.length !== currentColumns.length) {
-                setColumnCount(finalColumns.length)
-            }
-
             return finalColumns
         })
         handleColumnChange(columns)
@@ -251,7 +248,8 @@ export default function CanvasClient({
         }
     }, [saveBlocks, setSaveFunction])
 
-    const handleColumnCountChange = (count: number) => {
+    // First, memoize the column redistribution function
+    const redistributeColumns = useCallback((count: number) => {
         const allBlocks = columns.flat()
         const blocksPerColumn = Math.ceil(allBlocks.length / count)
         const newColumns: Block[][] = []
@@ -262,9 +260,16 @@ export default function CanvasClient({
             )
         }
 
-        handleColumnChange(newColumns)
-        setColumnCount(count)
-    }
+        if (newColumns.length !== columns.length) {
+            handleColumnChange(newColumns)
+        }
+    }, [columns, handleColumnChange])
+
+    // Then use it in the effect
+    useEffect(() => {
+        if (!mounted) return
+        redistributeColumns(columnCount)
+    }, [columnCount, mounted, redistributeColumns])
 
     if (!mounted) {
         return null
@@ -273,91 +278,77 @@ export default function CanvasClient({
     return (
         <div className='flex flex-col justify-center gap-2 py-2'>
             <div className='flex flex-row gap-1 justify-center'>
-            {[1, 2, 3, ].map((count) => (
-                <Button
-                    key={count}
-                    onClick={() => handleColumnCountChange(count)}
-                    variant={columnCount === count ? 'default' : 'outline'}
+                <DndContext
+                    sensors={sensors}
+                    onDragStart={({ active }) => setActiveId(active.id.toString())}
+                    onDragEnd={handleDragEnd}
+                    onDragCancel={() => setActiveId(null)}
                 >
-                    {count} Columns
-                </Button>
-            ))}
-            </div>
-            
-             <div className='flex flex-row gap-1 justify-center'>
-            
-            <DndContext
-                sensors={sensors}
-                onDragStart={({ active }) => setActiveId(active.id.toString())}
-                onDragEnd={handleDragEnd}
-                onDragCancel={() => setActiveId(null)}
-            >
-                <main className='flex flex-col items-center p-2 bg-customeBG2 w-fit max-w-screen-2xl overflow-hidden overflow-x-scroll rounded-lg relative'>
-                    <div className='flex gap-2 mb-4'></div>
-                    <div className='flex w-full max-w-7xl gap-1'>
-                        {columns.map((columnBlocks, index) => (
-                            <Column
-                                key={`column-${index}`}
-                                id={`column-${index}`}
-                                blocks={columnBlocks}
-                                activeId={activeId}
-                                onBlockClick={setEditingBlock}
-                                onDeleteBlock={handleDeleteBlock}
-                            />
-                        ))}
-                    </div>
-
-                    {showSidebarAsDrawer && (
-                        <Drawer>
-                            <DrawerTrigger asChild>
-                                <Button
-                                    className='fixed bottom-4 right-4 h-14 w-14 rounded-full'
-                                    size='icon'
-                                >
-                                    <Plus className='h-6 w-6' />
-                                </Button>
-                            </DrawerTrigger>
-                            <DrawerContent>
-                                <DrawerHeader>
-                                    <DrawerTitle>pick a block</DrawerTitle>
-                                </DrawerHeader>
-                                <SideBar
-                                    size='drawer'
-                                    onAddBlock={handleAddBlock}
+                    <main className='flex flex-col items-center p-2 bg-customeBG2 w-fit max-w-screen-2xl overflow-hidden overflow-x-scroll rounded-lg relative'>
+                        <div className='flex gap-2 mb-4'></div>
+                        <div className='flex w-full max-w-7xl gap-1'>
+                            {columns.map((columnBlocks, index) => (
+                                <Column
+                                    key={`column-${index}`}
+                                    id={`column-${index}`}
+                                    blocks={columnBlocks}
+                                    activeId={activeId}
+                                    onBlockClick={setEditingBlock}
+                                    onDeleteBlock={handleDeleteBlock}
                                 />
-                            </DrawerContent>
-                        </Drawer>
-                    )}
-                </main>
+                            ))}
+                        </div>
 
-                <DragOverlay>
-                    {activeId && (
-                        <BlockWrapper
-                            block={
-                                columns
-                                    .flat()
-                                    .find((block) => block.id === activeId)!
-                            }
-                            isActive={true}
-                            columnId={getBlockColumn(activeId)}
-                            location='canvas'
-                        />
-                    )}
-                </DragOverlay>
-            </DndContext>
+                        {showSidebarAsDrawer && (
+                            <Drawer>
+                                <DrawerTrigger asChild>
+                                    <Button
+                                        className='fixed bottom-4 right-4 h-14 w-14 rounded-full'
+                                        size='icon'
+                                    >
+                                        <Plus className='h-6 w-6' />
+                                    </Button>
+                                </DrawerTrigger>
+                                <DrawerContent>
+                                    <DrawerHeader>
+                                        <DrawerTitle>pick a block</DrawerTitle>
+                                    </DrawerHeader>
+                                    <SideBar
+                                        size='drawer'
+                                        onAddBlock={handleAddBlock}
+                                    />
+                                </DrawerContent>
+                            </Drawer>
+                        )}
+                    </main>
 
-            {!showSidebarAsDrawer && (
-                <SideBar size='sideBar' onAddBlock={handleAddBlock} />
-            )}
+                    <DragOverlay>
+                        {activeId && (
+                            <BlockWrapper
+                                block={
+                                    columns
+                                        .flat()
+                                        .find((block) => block.id === activeId)!
+                                }
+                                isActive={true}
+                                columnId={getBlockColumn(activeId)}
+                                location='canvas'
+                            />
+                        )}
+                    </DragOverlay>
+                </DndContext>
 
-            <EditBlockSheet
-                block={editingBlock}
-                isOpen={!!editingBlock}
-                onClose={() => setEditingBlock(null)}
-                onSave={handleSaveBlock}
-            />
+                {!showSidebarAsDrawer && (
+                    <SideBar size='sideBar' onAddBlock={handleAddBlock} />
+                )}
+
+                <EditBlockSheet
+                    block={editingBlock}
+                    isOpen={!!editingBlock}
+                    onClose={() => setEditingBlock(null)}
+                    onSave={handleSaveBlock}
+                />
+            </div>
         </div>
-        </div>
-       
     )
 }

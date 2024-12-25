@@ -1,6 +1,6 @@
 /** @format */
 'use client'
-import { Save, Printer } from 'lucide-react'
+import { Save, Printer, Laptop, Touchpad, Smartphone } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button'
 import Share from '@/components/ui/sharing'
 import { toast } from 'sonner'
 import { PreviewButton } from './previewButton'
-import { useAtomValue } from 'jotai'
-import { saveFunctionAtom, hasUnsavedChangesAtom } from '@/store/canvasAtoms'
+import { useAtomValue, useAtom } from 'jotai'
+import { saveFunctionAtom, hasUnsavedChangesAtom, columnCountAtom } from '@/store/canvasAtoms'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface HeaderMenuProps {
     children?: React.ReactNode
@@ -18,7 +19,8 @@ interface HeaderMenuProps {
 function ToolBar() {
     const saveFunction = useAtomValue(saveFunctionAtom)
     const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom)
-    
+    const [columnCount, setColumnCount] = useAtom(columnCountAtom)
+
     console.log('Save function in HeaderMenu:', !!saveFunction)
 
     const handleSave = async () => {
@@ -29,18 +31,47 @@ function ToolBar() {
         }
     }
 
+    const handleDeviceChange = (value: string) => {
+        switch (value) {
+            case 'pc':
+                setColumnCount(3)
+                break
+            case 'pad':
+                setColumnCount(2)
+                break
+            case 'phone':
+                setColumnCount(1)
+                break
+        }
+    }
+
     return (
         <div className='flex justify-between w-full items-center'>
-            <div className='flex flex-row gap-1'>
+            <div className='flex flex-row justify-between'>
                 <Button
                     onClick={handleSave}
                     variant={hasUnsavedChanges ? 'default' : 'secondary'}
                     size='icon'
                     disabled={!saveFunction}
                 >
-                    <Save className={`h-4 w-4 ${hasUnsavedChanges ? 'text-primary' : ''}`} />
+                    <Save
+                        className={`h-4 w-4 ${hasUnsavedChanges ? 'text-primary' : ''}`}
+                    />
                 </Button>
             </div>
+            <Tabs defaultValue="pc" onValueChange={handleDeviceChange}>
+                <TabsList className='grid w-full grid-cols-3'>
+                    <TabsTrigger value='pc'>
+                        <Laptop className='h-4 w-4' />
+                    </TabsTrigger>
+                    <TabsTrigger value='pad'>
+                        <Touchpad className='h-4 w-4' />
+                    </TabsTrigger>
+                    <TabsTrigger value='phone'>
+                        <Smartphone className='h-4 w-4' />
+                    </TabsTrigger>
+                </TabsList>
+            </Tabs>
             <div className='flex justify-between gap-2 items-center'>
                 <Button
                     variant={'secondary'}
@@ -76,7 +107,8 @@ export default function HeaderMenu({ children }: HeaderMenuProps) {
         }
 
         window.addEventListener('beforeunload', handleBeforeUnload)
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+        return () =>
+            window.removeEventListener('beforeunload', handleBeforeUnload)
     }, [hasUnsavedChanges])
 
     return (
