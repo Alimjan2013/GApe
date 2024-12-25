@@ -2,6 +2,7 @@
 'use client'
 import { Save, Printer } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
 import Share from '@/components/ui/sharing'
@@ -13,6 +14,7 @@ import { saveFunctionAtom, hasUnsavedChangesAtom } from '@/store/canvasAtoms'
 interface HeaderMenuProps {
     children?: React.ReactNode
 }
+
 function ToolBar() {
     const saveFunction = useAtomValue(saveFunctionAtom)
     const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom)
@@ -61,6 +63,21 @@ export default function HeaderMenu({ children }: HeaderMenuProps) {
         pathname.startsWith('/canvas/edit') ||
         pathname.startsWith('/blocks')
     const isSharePage = pathname.startsWith('/canvas/share')
+    const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom)
+
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasUnsavedChanges) {
+                e.preventDefault()
+                const message = 'Changes you made may not be saved.'
+                e.preventDefault()
+                return message
+            }
+        }
+
+        window.addEventListener('beforeunload', handleBeforeUnload)
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    }, [hasUnsavedChanges])
 
     return (
         <header className='sticky top-0 z-50 w-full border-border/40 bg-background/95 backdrop-blur border-b border-customeBorder supports-[backdrop-filter]:bg-background/70 print:hidden  flex justify-center'>
