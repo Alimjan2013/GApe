@@ -91,8 +91,7 @@ export default function CanvasClient({
             return
         }
 
-        const isColumn =
-            typeof over.id === 'string' && over.id.startsWith('column-')
+        const isColumn = typeof over.id === 'string' && over.id.startsWith('column-')
         const targetColumnId = isColumn
             ? Number(String(over.id).split('-')[1])
             : Number(String(over.data?.current?.columnId).split('-')[1])
@@ -109,20 +108,21 @@ export default function CanvasClient({
         )
 
         if (isColumn) {
-            newColumns[targetColumnId] = [
-                ...newColumns[targetColumnId],
-                activeBlock,
-            ]
+            newColumns[targetColumnId] = [...newColumns[targetColumnId], activeBlock]
         } else {
             const overBlockId = over.id as string
             const targetColumn = newColumns[targetColumnId]
             const overIndex = targetColumn.findIndex(
                 (block) => block.id === overBlockId
             )
+            
+            const overData = over.data?.current
+            const insertIndex = overData?.sortable?.index ?? overIndex
+            
             newColumns[targetColumnId] = [
-                ...targetColumn.slice(0, overIndex),
+                ...targetColumn.slice(0, insertIndex),
                 activeBlock,
-                ...targetColumn.slice(overIndex),
+                ...targetColumn.slice(insertIndex)
             ]
         }
 
@@ -140,27 +140,42 @@ export default function CanvasClient({
         return 'column-0'
     }
 
-    const handleAddBlock = (templateBlock: Block) => {
-        const newBlock = {
-            ...templateBlock,
-            id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        }
+    const generateUniqueBlockId = useCallback((existingBlocks: Block[][]): string => {
+        const existingIds = new Set(existingBlocks.flat().map(block => block.id))
+        let newId: string
+        do {
+            newId = `block-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+        } while (existingIds.has(newId))
+        return newId
+    }, []);
 
-        const columnLengths = columns.map((col) => col.length)
-        const minLength = Math.min(...columnLengths)
-        const targetColumnIndex = columnLengths.indexOf(minLength)
+    const memoizedHandleAddBlock = useCallback((templateBlock: Block) => {
+        setColumns(currentColumns => {
+            const newBlock = {
+                ...templateBlock,
+                id: generateUniqueBlockId(currentColumns),
+            }
 
-        setColumns((currentColumns) => {
-            const newColumns = [...currentColumns]
-            newColumns[targetColumnIndex] = [
-                ...newColumns[targetColumnIndex],
-                newBlock,
-            ]
-            handleColumnChange(newColumns)
-            return newColumns
-        })
-        toast.success('Block added to canvas')
-    }
+            let targetColumnIndex = 0;
+            let minLength = currentColumns[0].length;
+            
+            for (let i = 1; i < currentColumns.length; i++) {
+                if (currentColumns[i].length < minLength) {
+                    minLength = currentColumns[i].length;
+                    targetColumnIndex = i;
+                }
+            }
+
+            const newColumns = currentColumns.map((col, index) => 
+                index === targetColumnIndex ? [...col, newBlock] : [...col]
+            );
+
+            setHasUnsavedChanges(true);
+            return newColumns;
+        });
+
+        toast.success('Block added to canvas');
+    }, [generateUniqueBlockId, setHasUnsavedChanges]);
 
     const handleSaveBlock = (updatedBlock: Block) => {
         setColumns((currentColumns) =>
@@ -274,36 +289,43 @@ export default function CanvasClient({
     // First, memoize the column redistribution function
     const redistributeColumns = useCallback(
         (count: number) => {
-            const allBlocks = columns.flat()
-            const blocksPerColumn = Math.ceil(allBlocks.length / count)
-            const newColumns: Block[][] = []
-
-            for (let i = 0; i < count; i++) {
-                newColumns.push(
-                    allBlocks.slice(
-                        i * blocksPerColumn,
-                        (i + 1) * blocksPerColumn
-                    )
-                )
+            // Skip if count matches current column count
+            if (count === columns.length) return;
+            
+            // Skip if there are no blocks to redistribute
+            const allBlocks = columns.flat();
+            if (allBlocks.length === 0) {
+                // Just create empty columns
+                const emptyColumns = Array(count).fill([]).map(() => []);
+                handleColumnChange(emptyColumns);
+                return;
             }
 
-            if (newColumns.length !== columns.length) {
-                handleColumnChange(newColumns)
-            }
+            const blocksPerColumn = Math.ceil(allBlocks.length / count);
+            const newColumns: Block[][] = Array(count).fill([]).map(() => []);
+
+            // Distribute blocks across columns
+            allBlocks.forEach((block, index) => {
+                const columnIndex = Math.floor(index / blocksPerColumn);
+                if (columnIndex < count) {
+                    newColumns[columnIndex] = [...newColumns[columnIndex], block];
+                }
+            });
+
+            handleColumnChange(newColumns);
         },
         [columns, handleColumnChange]
-    )
+    );
 
     // Then use it in the effect
     useEffect(() => {
-        if (!mounted) return
-        redistributeColumns(columnCount)
-    }, [columnCount, mounted, redistributeColumns])
-
-    // Inside the component, memoize the handleAddBlock callback
-    const memoizedHandleAddBlock = useCallback((templateBlock: Block) => {
-        handleAddBlock(templateBlock)
-    }, []) // Empty dependency array since handleAddBlock doesn't depend on any props/state
+        if (!mounted) return;
+        
+        const currentColumnCount = columns.length;
+        if (columnCount !== currentColumnCount) {
+            redistributeColumns(columnCount);
+        }
+    }, [columnCount, mounted, redistributeColumns, columns.length]);
 
     if (!mounted) {
         return null
