@@ -6,13 +6,14 @@ import { useDroppable } from '@dnd-kit/core'
 
 interface ColumnProps {
   blocks: Block[]
-  activeId: string | null
+  activeId?: string | null
   id: string
   onBlockClick?: (block: Block) => void
   onDeleteBlock?: (blockId: string) => void
+  isEditing: boolean
 }
 
-export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlock }: ColumnProps) {
+export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlock ,isEditing}: ColumnProps) {
   // console.log('Column rendering with blocks:', blocks.length)
   
   const handleBlockClick = (block: Block) => {
@@ -51,7 +52,7 @@ export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlo
               isActive={block.id === activeId}
               columnId={id}
               onClick={() => handleBlockClick(block)}
-              location="canvas"
+              location={isEditing ? 'canvas' : 'sideBar'}
               onUpdate={(newData) => handleBlockUpdate(blockIndex, newData)}
               onDelete={onDeleteBlock}
             />
