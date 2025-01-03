@@ -1,6 +1,6 @@
 import React from 'react'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { Block } from '@/types'
+import type { Block } from '@/types'
 import BlockWrapper from './BlockWrapper'
 import { useDroppable } from '@dnd-kit/core'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useForm, DefaultValues, Path } from "react-hook-form"
+import { useForm, type DefaultValues, type Path } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Block } from "@/types"
-import { blockFormConfigs, FieldConfig } from "./formSchemas"
-import { ProfileCardProps, ProjectCardProps, EducationCardProps, PublicationCardProps, ExperienceCardProps } from "@/types"
+import type { Block } from "@/types"
+import { blockFormConfigs, type FieldConfig } from "./formSchemas"
+import type { ProfileCardProps, ProjectCardProps, EducationCardProps, PublicationCardProps, ExperienceCardProps } from "@/types"
 import { ImageUpload } from "./ImageUpload"
 import { createClient } from "@/utils/supabase/client"
 
@@ -39,7 +39,7 @@ export function DynamicBlockForm<T extends BlockData>({ block, onSave }: Dynamic
     const generateZodSchema = (config: Record<string, FieldConfig>) => {
         const schema: Record<string, any> = {}
         
-        Object.entries(config).forEach(([fieldName, fieldConfig]) => {
+        for (const [fieldName, fieldConfig] of Object.entries(config)) {
             if (fieldConfig.type === 'upload') {
                 schema[fieldName] = z.any()
             } else {
@@ -63,7 +63,7 @@ export function DynamicBlockForm<T extends BlockData>({ block, onSave }: Dynamic
                 }
                 schema[fieldName] = fieldSchema
             }
-        })
+        }
         
         return z.object(schema)
     }

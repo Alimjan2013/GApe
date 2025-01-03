@@ -1,6 +1,6 @@
 /** @format */
 import { createClient } from '@/utils/supabase/server'
-import { User } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 import AsyncButton from '@/components/ui/asyncButton'
 import { signout } from '@/app/authentication/actions'
 import Image from 'next/image'
