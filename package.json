@@ -1,6 +1,6 @@
 {
-    "name": "GApe",
-    "version": "0.1.0",
+    "name": "gape",
+    "version": "0.2.0",
     "private": true,
     "scripts": {
         "dev": "next dev",
