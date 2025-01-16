@@ -36,7 +36,7 @@ export function CanvasList({
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead>Name</TableHead>
+                    <TableHead>Title</TableHead>
                     <TableHead>Created At</TableHead>
                     <TableHead>Actions</TableHead>
                 </TableRow>
@@ -73,6 +73,7 @@ export function CanvasList({
                     </TableRow>
                 ))}
             </TableBody>
+            {canvases.length}
         </Table>
     )
 }

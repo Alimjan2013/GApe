@@ -8,6 +8,15 @@ import { CanvasList } from './canvas-list'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/utils/supabase/client'
 import { User } from '@supabase/supabase-js'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -33,6 +42,7 @@ export default function UserPage() {
     const [canvases, setCanvases] = useState<Canvas[]>([])
     const [error, setError] = useState<string | null>(null)
     const [canvasName, setCanvasName] = useState<string>('')
+    const [open, setOpen] = useState(false)
 
     async function fetchCanvases(id: string) {
         const { data: canvasData, error: canvasError } = await supabase
@@ -68,18 +78,40 @@ export default function UserPage() {
             return
         }
         toast.success('Canvas created successfully')
+        setOpen(false) // Close the dialog after submitting the form
+
         setCanvases((prevCanvases) => [...prevCanvases, ...data])
     }
 
     async function deleteCanvas(id: string) {
-        const { error } = await supabase.from('canvas').delete().eq('id', id)
-        if (error) {
+        try {
+            // Start a transaction
+
+
+            // Delete related entries in blockColumn table
+            const { error: blockColumnError } = await supabase
+                .from('blockColumn')
+                .delete()
+                .eq('canvas_id', id)
+            if (blockColumnError) throw blockColumnError
+
+            // Delete the canvas
+            const { error: canvasError } = await supabase
+                .from('canvas')
+                .delete()
+                .eq('id', id)
+            if (canvasError) throw canvasError
+
+          
+
+            user && fetchCanvases(user.id)
+            toast.success('Canvas deleted successfully')
+        } catch (error) {
             console.error(error)
             toast.error('Error deleting canvas')
-            return
+            // Rollback the transaction in case of error
+            await supabase.rpc('rollback_transaction')
         }
-        user && fetchCanvases(user.id)
-        toast.success('Canvas deleted successfully')
     }
 
     if (error) {
@@ -108,37 +140,53 @@ export default function UserPage() {
                             Your Canvases
                         </h2>
 
-                        <HoverCard>
-                            <HoverCardTrigger asChild>
-                                <Button variant='link'>create new</Button>
-                            </HoverCardTrigger>
-                            <HoverCardContent className='w-80'>
-                                <div className='flex justify-between space-x-4'>
-                                    <Label htmlFor='canvasName'>
-                                        Canvas Name
-                                    </Label>
-                                    <Input
-                                        value={canvasName}
-                                        onChange={(e) =>
-                                            setCanvasName(e.target.value)
-                                        }
-                                        className='h-8'
-                                        id='canvasName'
-                                    />
-                                    <Button
-                                        onClick={() => createNewCanvas(user.id)}
-                                    >
-                                        confirm
-                                    </Button>
+                        <Dialog open={open} onOpenChange={setOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant='link'>Create Canvas</Button>
+                            </DialogTrigger>
+                            <DialogContent className='sm:max-w-[425px]'>
+                                <DialogHeader>
+                                    <DialogTitle>Create New Canvas</DialogTitle>
+                                    <DialogDescription>
+                                        Enter the name for your new canvas and click confirm.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className='grid gap-4 py-4'>
+                                    <div className='grid grid-cols-4 items-center gap-4'>
+                                        <Label htmlFor='canvasName' className='text-right'>
+                                            Title
+                                        </Label>
+                                        <Input
+                                            id='canvasName'
+                                            value={canvasName}
+                                            onChange={(e) => setCanvasName(e.target.value)}
+                                            className='col-span-3'
+                                        />
+                                    </div>
                                 </div>
-                            </HoverCardContent>
-                        </HoverCard>
+                                <DialogFooter>
+                                    <Button onClick={() => createNewCanvas(user.id)}>
+                                        Confirm
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </div>
-                    {canvases.length > 0 && (
+                    {canvases.length > 0 ? (
                         <CanvasList
                             canvases={canvases}
                             deleteCanvas={deleteCanvas}
                         />
+                    ) : (
+                        <div className="text-center text-gray-500">
+                            <p>
+                            You have no canvases. Create your first canvas!
+
+                            </p>
+                            <Button variant='link' onClick={() => setOpen(true)}>
+                                Create new
+                            </Button>
+                        </div>
                     )}
                 </div>
             </div>
