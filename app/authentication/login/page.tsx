@@ -66,6 +66,7 @@ export default function LoginPage() {
                             <Button
                                 className='p-0 text-secondary-foreground'
                                 variant={'link'}
+                                type='button' // Add this line to specify the button type
                                 onClick={() => {
                                     console.log('/')
                                     router.push('/')
@@ -73,9 +74,7 @@ export default function LoginPage() {
                             >
                                 Go back
                             </Button>
-                            {/* <button className='w-fit text-sm bg-green-300 hover:bg-slate-100 border border-black border-solid'>
-                        Go back
-                    </button> */}
+                        
                         </div>
                         <div className='flex flex-row items-center justify-center'>
                             <h1 className=' text-2xl mb-6 w-fit px-1'>Login</h1>
