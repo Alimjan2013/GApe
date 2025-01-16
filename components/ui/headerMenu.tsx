@@ -16,7 +16,7 @@ interface HeaderMenuProps {
     children?: React.ReactNode
 }
 
-function ToolBar() {
+function ToolBar({ isCanvasPage }: { isCanvasPage: boolean }) {
     const saveFunction = useAtomValue(saveFunctionAtom)
     const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom)
     const [columnCount, setColumnCount] = useAtom(columnCountAtom)
@@ -59,19 +59,21 @@ function ToolBar() {
                     />
                 </Button>
             </div>
-            <Tabs defaultValue="pc" onValueChange={handleDeviceChange}>
-                <TabsList className='grid w-full grid-cols-3'>
-                    <TabsTrigger value='pc'>
-                        <Laptop className='h-4 w-4' />
-                    </TabsTrigger>
-                    <TabsTrigger value='pad'>
-                        <Touchpad className='h-4 w-4' />
-                    </TabsTrigger>
-                    <TabsTrigger value='phone'>
-                        <Smartphone className='h-4 w-4' />
-                    </TabsTrigger>
-                </TabsList>
-            </Tabs>
+            {isCanvasPage && (
+                <Tabs defaultValue="pc" onValueChange={handleDeviceChange}>
+                    <TabsList className='grid w-full grid-cols-3'>
+                        <TabsTrigger value='pc'>
+                            <Laptop className='h-4 w-4' />
+                        </TabsTrigger>
+                        <TabsTrigger value='pad'>
+                            <Touchpad className='h-4 w-4' />
+                        </TabsTrigger>
+                        <TabsTrigger value='phone'>
+                            <Smartphone className='h-4 w-4' />
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            )}
             <div className='flex justify-between gap-2 items-center'>
                 <Button
                     variant={'secondary'}
@@ -97,18 +99,24 @@ export default function HeaderMenu({ children }: HeaderMenuProps) {
     const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom)
 
     useEffect(() => {
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (hasUnsavedChanges) {
-                e.preventDefault()
-                const message = 'Changes you made may not be saved.'
-                e.preventDefault()
-                return message
+        if (isCanvasPage) {
+            const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+                if (hasUnsavedChanges) {
+                    e.preventDefault()
+                    const message = 'Changes you made may not be saved.'
+                    e.preventDefault()
+                    return message
+                }
             }
+    
+            window.addEventListener('beforeunload', handleBeforeUnload)
+            return () =>
+                window.removeEventListener('beforeunload', handleBeforeUnload)
         }
-
-        window.addEventListener('beforeunload', handleBeforeUnload)
-        return () =>
-            window.removeEventListener('beforeunload', handleBeforeUnload)
+        else {
+            window.removeEventListener('beforeunload', () => {})
+        }
+        
     }, [hasUnsavedChanges])
 
     return (
@@ -120,7 +128,7 @@ export default function HeaderMenu({ children }: HeaderMenuProps) {
                             <a href='/'>GApe</a>
                         </div>
                     </div>
-                    {isCanvasPage && <ToolBar />}
+                    {isCanvasPage && <ToolBar isCanvasPage={isCanvasPage} />}
                     {isSharePage && (
                         <div className='flex w-full justify-end'>
                             <Share />

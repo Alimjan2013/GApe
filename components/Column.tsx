@@ -8,11 +8,12 @@ interface ColumnProps {
   blocks: Block[]
   activeId: string | null
   id: string
+  isReviewing?: boolean
   onBlockClick?: (block: Block) => void
   onDeleteBlock?: (blockId: string) => void
 }
 
-export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlock }: ColumnProps) {
+export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlock,isReviewing }: ColumnProps) {
   // console.log('Column rendering with blocks:', blocks.length)
   
   const handleBlockClick = (block: Block) => {
@@ -51,7 +52,7 @@ export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlo
               isActive={block.id === activeId}
               columnId={id}
               onClick={() => handleBlockClick(block)}
-              location="canvas"
+              location={isReviewing ? 'sideBar' : 'canvas'}
               onUpdate={(newData) => handleBlockUpdate(blockIndex, newData)}
               onDelete={onDeleteBlock}
             />
