@@ -13,7 +13,7 @@ interface ColumnProps {
   onDeleteBlock?: (blockId: string) => void
 }
 
-export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlock,isReviewing }: ColumnProps) {
+export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlock, isReviewing }: ColumnProps) {
   // console.log('Column rendering with blocks:', blocks.length)
   
   const handleBlockClick = (block: Block) => {
@@ -33,7 +33,7 @@ export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlo
     // Call your update function here
   }
 
-  const { setNodeRef } = useDroppable({ 
+  const { setNodeRef, isOver } = useDroppable({ 
     id,
     data: {
       type: 'column',
@@ -43,8 +43,8 @@ export default function Column({ blocks, activeId, id, onBlockClick, onDeleteBlo
 
   return (
     <div className="flex-1">
-      <SortableContext items={blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}>
-        <div ref={setNodeRef} className="flex flex-col gap-2 p-1 bg-gray-100 rounded-lg">
+      <SortableContext  items={blocks.map((block) => block.id)} strategy={verticalListSortingStrategy}>
+        <div ref={setNodeRef} className={"flex  flex-col gap-2 p-1  rounded-lg"+ (isOver ? ' bg-blue-100' : '')}>
           {blocks.map((block, blockIndex) => (
             <BlockWrapper 
               key={block.id} 
