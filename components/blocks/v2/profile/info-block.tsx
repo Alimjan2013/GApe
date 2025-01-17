@@ -1,6 +1,8 @@
 /** @format */
-import { Globe, Twitter, Github, Phone, Mail, Trash2, Edit } from 'lucide-react'
+import {  Link2, Twitter, Github, Phone, Mail, Trash2, Edit } from 'lucide-react'
 import { ProfileCardProps } from './types'
+import Link from 'next/link'
+
 
 export function InfoBlock_L({
     onClick,
@@ -36,10 +38,10 @@ export function InfoBlock_L({
                 />
                 <div className='flex flex-col'>
                     <div className='text-xl font-semibold flex  items-center gap-1 '>
-                        {blockData.name}
-                        <a className='text-sm' href={blockData.url}>
-                            <Globe className='w-4' />
-                        </a>
+                        <Link href={blockData.url} target="_blank" className='flex items-center gap-1'>
+                            {blockData.name}
+                            <Link2 className='w-6' />
+                        </Link>
                     </div>
                     <div className='flex flex-col justify-between h-full'>
                         <p
@@ -107,8 +109,9 @@ export function InfoBlock_M({
                 />
                 <div className='grow shrink basis-0 self-stretch flex-col  inline-flex'>
                     <div className='text-black text-xl font-semibold flex gap-1 items-center'>
-                        {blockData.name} <a className='text-sm' href={blockData.url}>
-                            <Globe className='w-4' />
+                        {blockData.name}{' '}
+                        <a className='text-sm' href={blockData.url}>
+                            <Link2 className='w-6' />
                         </a>
                     </div>
                     <div

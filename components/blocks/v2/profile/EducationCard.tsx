@@ -64,8 +64,8 @@ export function EduBlock_L({
             >
                 {description}
             </div>
-            <div className='flex flex-col  max-w-full text-sm text-gray-700'>
-                <div className='flex gap-3.5 items-center w-full '>
+            <div className='flex flex-col  max-w-full text-sm text-gray-700 mx-1'>
+                <div className='flex gap-3.5 items-center w-full justify-between  '>
                     <div className='self-stretch    text-xl font-semibold leading-none text-slate-800'>
                         {field}
                     </div>

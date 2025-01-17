@@ -48,9 +48,8 @@ const infoBlockConfig: Record<string, FieldConfig> = {
         validation: { required: true, url: true }
     },
     github: {
-        type: 'url',
-        label: 'GitHub URL',
-        validation: { url: true }
+        type: 'text',
+        label: 'GitHub',
     },
     linkedin: {
         type: 'url',
@@ -58,9 +57,8 @@ const infoBlockConfig: Record<string, FieldConfig> = {
         validation: { url: true }
     },
     x: {
-        type: 'url',
-        label: 'X/Twitter URL',
-        validation: { url: true }
+        type: 'text',
+        label: 'X/Twitter',
     },
     url: {
         type: 'url',
