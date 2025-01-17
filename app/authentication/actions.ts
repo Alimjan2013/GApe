@@ -35,7 +35,17 @@ export async function emailSignup(formData: FormData) {
         password: formData.get('password') as string,
     }
 
-    const { data, error } = await supabase.auth.signUp(credentials)
+    // const { data, error } = await supabase.auth.signUp(credentials)
+
+
+    const { data, error } = await supabase.auth.signUp({
+        email: formData.get('email') as string,
+        password: formData.get('password') as string,
+        options:{
+            emailRedirectTo:'https://gape.is-ali.tech/authentication/login'
+        }
+         
+      });
 
     if (error) {
         return { success: false, message: error.message, data: null }
