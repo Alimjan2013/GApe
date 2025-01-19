@@ -52,9 +52,8 @@ const infoBlockConfig: Record<string, FieldConfig> = {
         label: 'GitHub',
     },
     linkedin: {
-        type: 'url',
-        label: 'LinkedIn URL',
-        validation: { url: true }
+        type: 'text',
+        label: 'LinkedIn Name',
     },
     x: {
         type: 'text',

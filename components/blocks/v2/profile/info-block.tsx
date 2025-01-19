@@ -1,5 +1,5 @@
 /** @format */
-import {  Link2, Twitter, Github, Phone, Mail, Trash2, Edit } from 'lucide-react'
+import {  Link2, Twitter, Github, Phone, Mail, Linkedin, Trash2, Edit,ExternalLink } from 'lucide-react'
 import { ProfileCardProps } from './types'
 import Link from 'next/link'
 
@@ -65,8 +65,8 @@ export function InfoBlock_L({
             </div>
             <div className='grid grid-cols-2 gap-1 text-[12px] w-full px-2'>
                 <div className='flex flex-row items-center gap-1'>
-                    <Phone className='w-4'></Phone>
-                    {blockData.phone}
+                <Linkedin className='w-4'></Linkedin>
+                {blockData.linkedin} <Link href={"https://www.linkedin.com/in/"+blockData.linkedin} target="_blank"> <ExternalLink className='w-4 from-neutral-300'  /></Link>
                 </div>
                 <div className='flex flex-row items-center gap-1'>
                     <Mail className='w-4'></Mail>
@@ -127,8 +127,8 @@ export function InfoBlock_M({
                     </div>
                     <div className='self-stretch justify-between items-start inline-flex'>
                         <div className="text-neutral-700 text-xs font-normal font-['Inter'] flex items-center gap-1">
-                            <Phone className='w-4'></Phone>
-                            {blockData.phone}
+                            <Linkedin className='w-4'></Linkedin>
+                            {blockData.linkedin}
                         </div>
 
                         <div className="text-neutral-700 text-xs font-normal font-['Inter'] flex items-center gap-1">

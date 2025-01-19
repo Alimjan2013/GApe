@@ -31,7 +31,7 @@ export function EduBlock_L({
                     <img
                         loading='lazy'
                         src={logoUrl}
-                        className='object-contain shrink-0 self-stretch    h-12 w-12'
+                        className='object-contain shrink-0 self-stretch    size-11'
                         alt='🏫'
                         onError={(e) => {
                             e.currentTarget.src =
@@ -56,11 +56,11 @@ export function EduBlock_L({
             <div
                 style={{
                     display: '-webkit-box',
-                    WebkitLineClamp: 6,
+                    WebkitLineClamp: 7,
                     WebkitBoxOrient: 'vertical',
                     textOverflow: 'ellipsis',
                 }}
-                className=' h-full overflow-hidden py-2 w-full text-base font-medium  border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600'
+                className=' h-full overflow-hidden py-1 w-full text-base leading-5 font-medium  border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600'
             >
                 {description}
             </div>
