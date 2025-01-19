@@ -73,7 +73,7 @@ export function ProjectBlock_L({
                     WebkitBoxOrient: 'vertical',
                     textOverflow: 'ellipsis',
                 }}
-                className='h-full  overflow-hidden py-2 w-full text-base font-medium  border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600'
+                className='h-full  overflow-hidden py-2 w-full text-base font-medium  border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600 overflow-y-auto'
             >
                 {description}
             </div>
@@ -184,7 +184,7 @@ export function ProjectBlock_M({
                     WebkitBoxOrient: 'vertical',
                     textOverflow: 'ellipsis',
                 }}
-                className='h-full  overflow-hidden shrink  self-stretch py-1 w-full text-sm font-medium leading-4 border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600'
+                className='h-full  overflow-hidden  overflow-y-auto   self-stretch py-1 w-full text-sm font-medium leading-4 border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600'
             >
                 {description}
             </div>
@@ -196,7 +196,7 @@ export function ProjectBlock_M({
                         viewBox='0 0 48 48'
                         fill='none'
                         xmlns='http://www.w3.org/2000/svg'
-                        className='object-contain shrink-0 self-stretch   w-4 aspect-square'
+                        className='object-contain self-stretch   w-4 aspect-square'
                     >
                         <path
                             d='M9.85786 32.7574C6.23858 33.8432 4 35.3432 4 37C4 40.3137 12.9543 43 24 43C35.0457 43 44 40.3137 44 37C44 35.3432 41.7614 33.8432 38.1421 32.7574'

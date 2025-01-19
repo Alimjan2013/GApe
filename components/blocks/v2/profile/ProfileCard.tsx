@@ -32,7 +32,7 @@ export function ProfileCard({
                     className='object-contain shrink-0 self-start rounded-full aspect-square shadow-[0px_1px_10px_rgba(0,123,255,0.15)] w-[84px]'
                     alt={`${name}'s profile`}
                 />
-                <div className='flex flex-col flex-1 shrink justify-between basis-0 min-w-[240px]'>
+                <div className='flex flex-col flex-1 shrink justify-between basis-0 min-w-[240px] overflow-y-auto'>
                     <div>{description}</div>
                     <div className='flex gap-10 justify-between items-start mt-2.5 w-full whitespace-nowrap'>
                         <div className='flex gap-1 items-center'>

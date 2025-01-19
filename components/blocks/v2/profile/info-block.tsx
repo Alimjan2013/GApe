@@ -45,7 +45,7 @@ export function InfoBlock_L({
                     </div>
                     <div className='flex flex-col justify-between h-full'>
                         <p
-                            className='text-sm overflow-hidden'
+                            className='text-sm overflow-hidden overflow-y-auto'
                             style={{
                                 display: '-webkit-box',
                                 WebkitLineClamp: 6,

@@ -30,10 +30,10 @@ export function WorkBlock_L({
                         }}
                     />
                     <div className='flex flex-col self-stretch my-auto'>
-                        <div className='text-xl font-semibold tracking-normal leading-snug text-black'>
+                        <div className='text-xl font-semibold tracking-normal leading-5 text-black'>
                             {company}
                         </div>
-                        <div className='flex gap-1.5 items-center text-sm font-medium leading-none text-neutral-700'>
+                        <div className='flex gap-1.5 items-center text-sm font-medium leading-3 text-neutral-700'>
                             <div className='self-stretch my-auto'>{title}</div>
                         </div>
                     </div>
@@ -44,7 +44,15 @@ export function WorkBlock_L({
                     </div>
                 )}
             </div>
-            <div className='flex-1 shrink gap-2.5 self-stretch py-1 mt-1.5 w-full text-sm leading-6 text-black border-t border-b border-solid border-b-gray-300 border-t-gray-300'>
+            <div
+                style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 7,
+                    WebkitBoxOrient: 'vertical',
+                    textOverflow: 'ellipsis',
+                }}
+                className='flex-1 shrink  self-stretch py-1 mt-1.5 w-full text-base leading-5 text-neutral-600 border-t border-b border-solid border-b-gray-300 border-t-gray-300 overflow-y-auto'
+            >
                 {description}
             </div>
             <div className='flex gap-10 justify-between items-center mt-1.5 w-full text-sm font-medium leading-none'>
@@ -137,7 +145,7 @@ export function WorkBlock_M({
                     WebkitBoxOrient: 'vertical',
                     textOverflow: 'ellipsis',
                 }}
-                className='h-full  overflow-hidden shrink  self-stretch py-1 w-full text-sm font-medium leading-4 border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600'
+                className='h-full  overflow-hidden shrink  self-stretch py-1 w-full text-sm font-medium leading-4 border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600 overflow-y-auto'
             >
                 {description}
             </div>

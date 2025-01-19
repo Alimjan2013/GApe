@@ -60,7 +60,7 @@ export function EduBlock_L({
                     WebkitBoxOrient: 'vertical',
                     textOverflow: 'ellipsis',
                 }}
-                className=' h-full overflow-hidden py-1 w-full text-base leading-5 font-medium  border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600'
+                className=' h-full overflow-hidden py-1 w-full text-base leading-5 font-medium  border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600 overflow-y-auto'
             >
                 {description}
             </div>
@@ -135,7 +135,7 @@ export function EduBlock_M({
                     WebkitBoxOrient: 'vertical',
                     textOverflow: 'ellipsis',
                 }}
-                className=' h-full overflow-hidden shrink  self-stretch py-1 w-full text-sm font-medium leading-4 border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600'
+                className=' h-full overflow-hidden shrink  self-stretch py-1 w-full text-sm font-medium leading-4 border-t border-b border-solid border-b-gray-300 border-t-gray-300 text-neutral-600 overflow-y-auto'
             >
                 {description}
             </div>
